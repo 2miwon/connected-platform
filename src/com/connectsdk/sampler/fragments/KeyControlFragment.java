@@ -47,6 +47,7 @@ public class KeyControlFragment extends BaseFragment {
     public Button upButton;
     public Button leftButton;
     public Button clickButton;
+    public Button rightButton;
     public Button backButton;
     public Button downButton;
     public Button homeButton;
@@ -91,6 +92,7 @@ public class KeyControlFragment extends BaseFragment {
         upButton = (Button) rootView.findViewById(R.id.upButton);
         leftButton = (Button) rootView.findViewById(R.id.leftButton);
         clickButton = (Button) rootView.findViewById(R.id.clickButton);
+        rightButton = (Button) rootView.findViewById(R.id.rightButton);
         backButton = (Button) rootView.findViewById(R.id.backButton);
         downButton = (Button) rootView.findViewById(R.id.downButton);
         homeButton = (Button) rootView.findViewById(R.id.homeButton);
@@ -98,14 +100,15 @@ public class KeyControlFragment extends BaseFragment {
         openKeyboardButton.setSelected(false);
         trackpadView = rootView.findViewById(R.id.trackpadView);
 
-        buttons = new Button[7];
+        buttons = new Button[8];
         buttons[0] = upButton;
         buttons[1] = leftButton;
         buttons[2] = clickButton;
-        buttons[3] = backButton;
-        buttons[4] = downButton;
-        buttons[5] = homeButton;
-        buttons[6] = openKeyboardButton;
+        buttons[3] = rightButton;
+        buttons[4] = backButton;
+        buttons[5] = downButton;
+        buttons[6] = homeButton;
+        buttons[7] = openKeyboardButton;
 
         editText = (EditText) rootView.findViewById(R.id.editField);
 
@@ -270,6 +273,20 @@ public class KeyControlFragment extends BaseFragment {
             disableButton(clickButton);
         }
         // TODO 함수를 채우시오
+        if (getTv().hasCapability(KeyControl.Right)) {
+            rightButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().right(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.RightClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(rightButton);
+        }
 
 
         if (getTv().hasCapability(KeyControl.Back)) {

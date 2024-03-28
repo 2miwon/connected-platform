@@ -43,8 +43,11 @@ public class AppsFragment extends BaseFragment {
     //  public Button smartWorldButton;
     public Button browserButton;
     public Button myAppButton;
-    public Button appStoreButton;
     public Button toastButton;
+
+    public Button netflixButton;
+    public Button appStoreButton;
+    public Button youtubeButton;
 
     public ListView appListView;
     public AppAdapter adapter;
@@ -74,8 +77,11 @@ public class AppsFragment extends BaseFragment {
 
         browserButton = (Button) rootView.findViewById(R.id.browserButton);
         myAppButton = (Button) rootView.findViewById(R.id.myApp);
-        appStoreButton = (Button) rootView.findViewById(R.id.appStoreButton);
         toastButton = (Button) rootView.findViewById(R.id.toastButton);
+
+        netflixButton = (Button) rootView.findViewById(R.id.netflixButton);
+        appStoreButton = (Button) rootView.findViewById(R.id.appStoreButton);
+        youtubeButton = (Button) rootView.findViewById(R.id.youtubeButton);
 
         appListView = (ListView) rootView.findViewById(R.id.appListView);
         adapter = new AppAdapter(getContext(), R.layout.app_item);
@@ -84,8 +90,10 @@ public class AppsFragment extends BaseFragment {
         buttons = new Button[] {
                 browserButton,
                 toastButton, 
-                myAppButton, 
-                appStoreButton
+                myAppButton,
+                netflixButton,
+                appStoreButton,
+                youtubeButton
         };
 
         return rootView;
@@ -144,6 +152,70 @@ public class AppsFragment extends BaseFragment {
         }
 
         browserButton.setSelected(false);
+
+        if (getTv().hasCapability(Launcher.Netflix)
+                || getTv().hasCapability(Launcher.Netflix_Params))
+        {
+            netflixButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (netflixButton.isSelected()) {
+                        netflixButton.setSelected(false);
+                        if (runningAppSession != null) {
+                            runningAppSession.close(null);
+                        }
+                    }
+                    else {
+                        netflixButton.setSelected(true);
+                        getLauncher().launchNetflix("http://connectsdk.com/", new Launcher.AppLaunchListener() {
+
+                            public void onSuccess(LaunchSession session) {
+                                setRunningAppInfo(session);
+                                testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.Launched_Browser);
+                            }
+
+                            public void onError(ServiceCommandError error) {
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(netflixButton);
+        }
+
+        if (getTv().hasCapability(Launcher.YouTube)
+                || getTv().hasCapability(Launcher.YouTube_Params))
+        {
+            youtubeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (youtubeButton.isSelected()) {
+                        youtubeButton.setSelected(false);
+                        if (runningAppSession != null) {
+                            runningAppSession.close(null);
+                        }
+                    }
+                    else {
+                        youtubeButton.setSelected(true);
+                        getLauncher().launchYouTube("http://connectsdk.com/", new Launcher.AppLaunchListener() {
+
+                            public void onSuccess(LaunchSession session) {
+                                setRunningAppInfo(session);
+                                testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.Launched_Browser);
+                            }
+
+                            public void onError(ServiceCommandError error) {
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(netflixButton);
+        }
 
         if (getTv().hasCapability(Launcher.RunningApp_Subscribe)) {
             runningAppSubs = getLauncher().subscribeRunningApp(new AppInfoListener() {

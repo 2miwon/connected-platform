@@ -58,11 +58,25 @@
         android:layout_marginTop="5dp" >
 
         <Button
+            android:id="@+id/netflixButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="NETFLIX" />
+
+        <Button
             android:id="@+id/appStoreButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="App Store" />
+
+        <Button
+            android:id="@+id/youtubeButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="YOUTUBE" />
 
     </LinearLayout>
 
