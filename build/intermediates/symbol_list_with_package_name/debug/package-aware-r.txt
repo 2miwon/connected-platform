@@ -1303,6 +1303,7 @@ id center_horizontal
 id center_vertical
 id channelDownButton
 id channelListView
+id channelUpButton
 id checkbox
 id checked
 id chronometer
@@ -1442,6 +1443,7 @@ id mr_volume_slider
 id multiply
 id muteToggle
 id myApp
+id netflixButton
 id never
 id nextButton
 id none
@@ -1480,6 +1482,7 @@ id recycler_view
 id responseMessageTextView
 id rewindButton
 id right
+id rightButton
 id right_icon
 id right_side
 id screen
@@ -1579,6 +1582,7 @@ id volume_seek_bar
 id wide
 id withText
 id wrap_content
+id youtubeButton
 integer abc_config_activityDefaultDur
 integer abc_config_activityShortDur
 integer cancel_button_image_alpha
