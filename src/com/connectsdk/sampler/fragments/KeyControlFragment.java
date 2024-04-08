@@ -46,6 +46,7 @@ import com.connectsdk.service.command.ServiceCommandError;
 public class KeyControlFragment extends BaseFragment {
     public Button upButton;
     public Button leftButton;
+    public Button rightButton; // ADDED RIGHT BUTTON
     public Button clickButton;
     public Button backButton;
     public Button downButton;
@@ -90,6 +91,7 @@ public class KeyControlFragment extends BaseFragment {
 
         upButton = (Button) rootView.findViewById(R.id.upButton);
         leftButton = (Button) rootView.findViewById(R.id.leftButton);
+        rightButton = (Button) rootView.findViewById(R.id.rightButton); // ADDED RIGHT BUTTOn
         clickButton = (Button) rootView.findViewById(R.id.clickButton);
         backButton = (Button) rootView.findViewById(R.id.backButton);
         downButton = (Button) rootView.findViewById(R.id.downButton);
@@ -98,7 +100,7 @@ public class KeyControlFragment extends BaseFragment {
         openKeyboardButton.setSelected(false);
         trackpadView = rootView.findViewById(R.id.trackpadView);
 
-        buttons = new Button[7];
+        buttons = new Button[8];
         buttons[0] = upButton;
         buttons[1] = leftButton;
         buttons[2] = clickButton;
@@ -106,6 +108,10 @@ public class KeyControlFragment extends BaseFragment {
         buttons[4] = downButton;
         buttons[5] = homeButton;
         buttons[6] = openKeyboardButton;
+
+        // Added right button //
+        buttons[7] = rightButton;
+        // Added right button //
 
         editText = (EditText) rootView.findViewById(R.id.editField);
 
@@ -255,6 +261,23 @@ public class KeyControlFragment extends BaseFragment {
             disableButton(leftButton);
         }
 
+        // ADDED RIGHT BUTTON HERE //
+        if (getTv().hasCapability(KeyControl.Right)) {
+            rightButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().right(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.RightClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(rightButton);
+        }
+        // ADDED RIGHT BUTTON HERE //
+
         if (getTv().hasCapability(KeyControl.OK)) {
             clickButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -303,6 +326,15 @@ public class KeyControlFragment extends BaseFragment {
 
         if (getTv().hasCapability(KeyControl.Home)) {
             // TODO 함수를 채우시오
+            homeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().home(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.HomeClicked);
+                    }
+                }
+            });
         }
         else {
             disableButton(homeButton);
