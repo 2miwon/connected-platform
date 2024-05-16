@@ -25,7 +25,7 @@ const Video = (prop) => {
 				loop
 				miniFeedbackHideDelay={2000}
 				muted
-				title="Sandstone VideoPlayer Sample Video"
+				title="Sandstone VideoPlayer Test Video"
 				titleHideDelay={4000}
 			>
 				<source src={prop.src} type="video/mp4" />

@@ -8,23 +8,25 @@ import {isDevServe} from '../libs/utils';
 /* istanbul ignore next*/
 if (isDevServe()) {
 	window.webOSSystem = {
-		highContrast: 'off',
+		highContrast: 'on',
 		close: () => {},
 		platformBack: () => {},
 		PmLogString: () => {},
 		screenOrientation: 'landscape',
 		setWindowOrientation: () => {}
+
 	};
 }
 
 const App = props => {
-	const [skinVariants, setSkinVariants] = useState({highContrast: false});
+	const [skinVariants, setSkinVariants] = useState({highContrast: true});
 	const handleBack = useBackHandler();
 	const handleClose = useCloseHandler();
 	useDocumentEvent(setSkinVariants);
 
 	return (
 		<Panels
+
 			{...props}
 			skinVariants={skinVariants}
 			onBack={handleBack}
