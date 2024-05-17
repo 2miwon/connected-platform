@@ -17,6 +17,7 @@ Created repository for further development of hte media web application
 
 
 # Teammate roles
-Im Heewon - Backend Developer
+
+Lim Heewon - Backend Developer
 
 Lee Hojae - Frontend Developer
