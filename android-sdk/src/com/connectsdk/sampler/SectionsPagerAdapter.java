@@ -60,23 +60,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         switch (position)
         {
             case 1:
-                newFragment = new WebAppFragment(mContext);
-                break;
-
-            case 2:
                 newFragment = new KeyControlFragment(mContext);
-                break;
-
-            case 3:
-                newFragment = new AppsFragment(mContext);
-                break;
-
-            case 4:
-                newFragment = new TVFragment(mContext);
-                break;
-
-            case 5:
-                newFragment = new SystemFragment(mContext);
                 break;
 
             case 0:
