@@ -1,7 +1,11 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\frontend",
+    "\\frontend\\src",
+    "\\frontend\\src\\App",
+    "\\frontend\\src\\views"
   ],
-  "SelectedNode": "\\C:\\Users\\uniks\\OneDrive\\Documents\\GitHub\\connected-platform",
+  "SelectedNode": "\\frontend\\src\\views\\Home.js",
   "PreviewInSolutionExplorer": false
 }
