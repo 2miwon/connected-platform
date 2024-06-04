@@ -71,7 +71,7 @@ const Account = () => {
 				type="text"
 				value={state.name}
 				onChange={e => setState(prev => ({...prev, name: e.value}))}
-				placeholder="Name"
+				placeholder="Your Name"
 			/>
 			<InputField
 				type="email"

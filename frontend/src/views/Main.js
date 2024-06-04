@@ -9,7 +9,7 @@ import HLSVideo from './HLSVideo';
 const Main = (props) => {
 	return (
 		<Panel {...props} style={{ backgroundColor: '#74992e' }}>
-			<Header title={$L('Enact Template')} />
+			
 			<TabLayout orientation='horizontal'>
 				<Tab title={$L('Home')}>
 					<Home />
@@ -34,3 +34,6 @@ const Main = (props) => {
 	);
 };
 export default Main;
+
+
+//<Header title={$L('Enact Template')} />
