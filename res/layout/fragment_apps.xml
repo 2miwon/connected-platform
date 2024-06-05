@@ -67,16 +67,16 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/netflixButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Netflix" />
-
-    <Button
         android:id="@+id/youtubeButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Youtube" />
+
+    <Button
+        android:id="@+id/netflixButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Netflix" />
 
     <ListView
         android:id="@+id/appListView"

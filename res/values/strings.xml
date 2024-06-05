@@ -10,6 +10,8 @@
     	<item>Apps</item>
     	<item>TV</item>
     	<item>System</item>
+
+
     </string-array>
 
     <string-array name="tab_icons">
@@ -19,6 +21,8 @@
         <item>@drawable/icon_17114</item>
         <item>@drawable/icon_15111</item>
         <item>@drawable/icon_17183</item>
+
+
     </string-array>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
