@@ -11,29 +11,28 @@
 
 package com.connectsdk.sampler.fragments;
 
-import java.util.List;
+
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
+
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ListView;
+
 import android.widget.SeekBar;
 
-import com.connectsdk.core.ExternalInputInfo;
+
 import com.connectsdk.sampler.R;
 import com.connectsdk.sampler.util.TestResponseObject;
-import com.connectsdk.service.capability.ExternalInputControl;
-import com.connectsdk.service.capability.ExternalInputControl.ExternalInputListListener;
-import com.connectsdk.service.capability.Launcher;
+
+import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.capability.VolumeControl.MuteListener;
@@ -41,6 +40,9 @@ import com.connectsdk.service.capability.VolumeControl.VolumeListener;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.sessions.LaunchSession;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class UpdatedMediaFragment extends BaseFragment {
     public CheckBox muteToggleButton;
@@ -50,17 +52,37 @@ public class UpdatedMediaFragment extends BaseFragment {
 
     public Button playButton;
     public Button pauseButton;
-    public Button stopButton;
     public Button rewindButton;
     public Button fastForwardButton;
 
-    public Button inputPickerButton;
 
-    public ListView inputListView;
-    public ArrayAdapter<String> adapter;
+    // ADDED FROM HERE
+    public Button upButton;
+    public Button leftButton;
+    public Button rightButton; // ADDED RIGHT BUTTON
+    public Button clickButton;
+    public Button backButton;
+    public Button downButton;
+    public Button homeButton;
 
-    public LaunchSession inputPickerSession;
+    public View trackpadView;
 
+    boolean isDown = false;
+    boolean isMoving = false;
+    boolean isScroll = false;
+
+    float startX;
+    float startY;
+
+    float lastX = Float.NaN;
+    float lastY = Float.NaN;
+
+    int scrollDx, scrollDy;
+    long eventStart = 0;
+    Timer timer = new Timer();
+    TimerTask autoScrollTimerTask;
+
+    // ADDED FROM HERE
     public TestResponseObject testResponse;
 
     private ServiceSubscription<VolumeListener> mVolumeSubscription;
@@ -83,45 +105,47 @@ public class UpdatedMediaFragment extends BaseFragment {
         muteToggleButton = (CheckBox) rootView.findViewById(R.id.muteToggle);
         volumeUpButton = (Button) rootView.findViewById(R.id.volumeUpButton);
         volumeDownButton = (Button) rootView.findViewById(R.id.volumeDownButton);
-        //inputListView = (ListView) rootView.findViewById(R.id.inputListView);
+
         playButton = (Button) rootView.findViewById(R.id.playButton);
         pauseButton = (Button) rootView.findViewById(R.id.pauseButton);
-        //stopButton = (Button) rootView.findViewById(R.id.stopButton);
+
         rewindButton = (Button) rootView.findViewById(R.id.rewindButton);
         fastForwardButton = (Button) rootView.findViewById(R.id.fastForwardButton);
-        adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1);
-        inputListView.setAdapter(adapter);
 
         volumeSlider = (SeekBar) rootView.findViewById(R.id.volumeSlider);
         volumeSlider.setMax(100);
 
-        inputListView.setOnItemClickListener(new OnItemClickListener() {
 
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-                String input = (String) arg0.getItemAtPosition(arg2);
-                if (getTv().hasCapability(ExternalInputControl.Set)) {
-                    ExternalInputInfo inputInfo = new ExternalInputInfo();
-                    inputInfo.setId(input);
-                    getExternalInputControl().setExternalInput(inputInfo, null);
-                }
-            }
-        });
+        upButton = (Button) rootView.findViewById(R.id.upButton);
+        leftButton = (Button) rootView.findViewById(R.id.leftButton);
+        rightButton = (Button) rootView.findViewById(R.id.rightButton); // ADDED RIGHT BUTTOn
+        clickButton = (Button) rootView.findViewById(R.id.clickButton);
+        backButton = (Button) rootView.findViewById(R.id.backButton);
+        downButton = (Button) rootView.findViewById(R.id.downButton);
+        homeButton = (Button) rootView.findViewById(R.id.homeButton);
 
-        inputPickerButton = (Button) rootView.findViewById(R.id.inputPickerButton);
+        trackpadView = rootView.findViewById(R.id.trackpadView);
 
         buttons = new Button[] {
-                inputPickerButton,
+
                 volumeUpButton,
                 volumeDownButton,
                 muteToggleButton,
                 pauseButton,
                 playButton,
-                stopButton,
                 rewindButton,
-                fastForwardButton
+                fastForwardButton,
+
+                upButton,
+                leftButton,
+                clickButton,
+                backButton,
+                downButton,
+                homeButton,
+                rightButton,
+
         };
-        buttons[0] = inputPickerButton;
+
 
         return rootView;
     }
@@ -130,18 +154,15 @@ public class UpdatedMediaFragment extends BaseFragment {
     public void enableButtons() {
         super.enableButtons();
 
-        if (getTv().hasCapability(ExternalInputControl.List))
-            getExternalInputControl().getExternalInputList(externalInputListener);
 
         volumeSlider.setEnabled(getTv().hasCapability(VolumeControl.Volume_Set));
-        inputPickerButton.setEnabled(getTv().hasCapability(ExternalInputControl.Picker_Launch));
+
         muteToggleButton.setEnabled(getTv().hasCapability(VolumeControl.Mute_Set));
         volumeUpButton.setEnabled(getTv().hasCapability(VolumeControl.Volume_Up_Down));
         volumeDownButton.setEnabled(getTv().hasCapability(VolumeControl.Volume_Up_Down));
 
         playButton.setEnabled(getTv().hasCapability(MediaControl.Play));
         pauseButton.setEnabled(getTv().hasCapability(MediaControl.Pause));
-        stopButton.setEnabled(getTv().hasCapability(MediaControl.Stop));
         rewindButton.setEnabled(getTv().hasCapability(MediaControl.Rewind));
         fastForwardButton.setEnabled(getTv().hasCapability(MediaControl.FastForward));
 
@@ -151,7 +172,7 @@ public class UpdatedMediaFragment extends BaseFragment {
         if (getTv().hasCapability(VolumeControl.Mute_Subscribe))
             mMuteSubscription = getVolumeControl().subscribeMute(muteListener);
 
-        inputPickerButton.setOnClickListener(inputPickerClickListener);
+
         volumeUpButton.setOnClickListener(volumeChangedClickListener);
         volumeDownButton.setOnClickListener(volumeChangedClickListener);
         muteToggleButton.setOnClickListener(muteToggleClickListener);
@@ -159,9 +180,226 @@ public class UpdatedMediaFragment extends BaseFragment {
 
         playButton.setOnClickListener(playClickListener);
         pauseButton.setOnClickListener(pauseClickListener);
-        stopButton.setOnClickListener(stopClickListener);
         rewindButton.setOnClickListener(rewindClickListener);
         fastForwardButton.setOnClickListener(fastForwardClickListener);
+
+        if (getMouseControl() != null) {
+            getMouseControl().connectMouse();
+        }
+
+        if (getTv().hasCapability(KeyControl.Up)) {
+            upButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().up(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.UpClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(upButton);
+        }
+
+        if (getTv().hasCapability(KeyControl.Left)) {
+            leftButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().left(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.LeftClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(leftButton);
+        }
+
+        // ADDED RIGHT BUTTON HERE //
+        if (getTv().hasCapability(KeyControl.Right)) {
+            rightButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().right(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.RightClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(rightButton);
+        }
+        // ADDED RIGHT BUTTON HERE //
+
+        if (getTv().hasCapability(KeyControl.OK)) {
+            clickButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().ok(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.Clicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(clickButton);
+        }
+        // TODO 함수를 채우시오
+
+
+        if (getTv().hasCapability(KeyControl.Back)) {
+            backButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().back(null);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(backButton);
+        }
+
+        if (getTv().hasCapability(KeyControl.Down)) {
+            downButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().down(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.DownClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(downButton);
+        }
+
+        if (getTv().hasCapability(KeyControl.Home)) {
+            // TODO 함수를 채우시오
+            homeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (getKeyControl() != null) {
+                        getKeyControl().home(null);
+                        testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.HomeClicked);
+                    }
+                }
+            });
+        }
+        else {
+            disableButton(homeButton);
+        }
+
+        trackpadView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                float dx = 0, dy = 0;
+
+                boolean wasMoving = isMoving;
+                boolean wasScroll = isScroll;
+
+                isScroll = isScroll || motionEvent.getPointerCount() > 1;
+
+                switch (motionEvent.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        isDown = true;
+                        eventStart = motionEvent.getEventTime();
+                        startX = motionEvent.getX();
+                        startY = motionEvent.getY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        isDown = false;
+                        isMoving = false;
+                        isScroll = false;
+                        lastX = Float.NaN;
+                        lastY = Float.NaN;
+                        break;
+                }
+
+                if (lastX != Float.NaN || lastY != Float.NaN) {
+                    dx = Math.round(motionEvent.getX() - lastX);
+                    dy = Math.round(motionEvent.getY() - lastY);
+                }
+
+                lastX = motionEvent.getX();
+                lastY = motionEvent.getY();
+
+                float xDistFromStart = Math.abs(motionEvent.getX() - startX);
+                float yDistFromStart = Math.abs(motionEvent.getY() - startY);
+
+                if (isDown && !isMoving) {
+                    if (xDistFromStart > 10 && yDistFromStart > 10) {
+                        isMoving = true;
+                    }
+                }
+
+                if (isDown && isMoving) {
+                    if (dx != 0 && dy != 0) {
+                        // Scale dx and dy to simulate acceleration
+                        int dxSign = dx >= 0 ? 1 : -1;
+                        int dySign = dy >= 0 ? 1 : -1;
+
+                        dx = dxSign * Math.round(Math.pow(Math.abs(dx), 1.1));
+                        dy = dySign * Math.round(Math.pow(Math.abs(dy), 1.1));
+
+                        if (!isScroll) {
+                            if (getMouseControl() != null)
+                                getMouseControl().move(dx, dy);
+                        } else {
+                            long now = SystemClock.uptimeMillis();
+
+                            scrollDx = (int)(motionEvent.getX() - startX);
+                            scrollDy = (int)(motionEvent.getY() - startY);
+
+                            if (now - eventStart > 1000 && autoScrollTimerTask == null) {
+                                Log.d("main", "starting autoscroll");
+                                // start autoscrolling
+                                autoScrollTimerTask = new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        if (getMouseControl() != null)
+                                            getMouseControl().scroll(scrollDx, scrollDy);
+                                    }
+                                };
+
+                                timer.schedule(autoScrollTimerTask, 100, 750);
+                            }
+                        }
+                    }
+                } else if (!isDown && !wasMoving) {
+                    if (getMouseControl() != null)
+                        getMouseControl().click();
+                } else if (!isDown && wasMoving && wasScroll) {
+                    // release two fingers
+                    dx = motionEvent.getX() - startX;
+                    dy = motionEvent.getY() - startY;
+
+                    if (getMouseControl() != null)
+                        getMouseControl().scroll(dx, dy);
+                    Log.d("main", "sending scroll " + dx + " ," + dx);
+                }
+
+                if (!isDown) {
+                    isMoving = false;
+
+                    if (autoScrollTimerTask != null) {
+                        autoScrollTimerTask.cancel();
+                        autoScrollTimerTask = null;
+
+                        Log.d("main", "ending autoscroll");
+                    }
+                }
+
+                return true;
+            }
+        });
+
     }
 
     private View.OnClickListener muteToggleClickListener = new View.OnClickListener() {
@@ -193,50 +431,6 @@ public class UpdatedMediaFragment extends BaseFragment {
         }
     };
 
-    private View.OnClickListener inputPickerClickListener = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            if (inputPickerButton.isSelected()) {
-                if (inputPickerSession != null) {
-                    inputPickerButton.setSelected(false);
-                    getExternalInputControl().closeInputPicker(inputPickerSession, null);
-                }
-            }
-            else {
-                inputPickerButton.setSelected(true);
-                if (getExternalInputControl() != null) {
-                    getExternalInputControl().launchInputPicker(new Launcher.AppLaunchListener() {
-
-                        public void onError(ServiceCommandError error) { }
-
-                        public void onSuccess(LaunchSession object) {
-                            inputPickerSession = object;
-                            testResponse =  new TestResponseObject(true, TestResponseObject.SuccessCode, TestResponseObject.InputPickerVisible);
-                        }
-                    });
-                }
-            }
-        }
-    };
-
-    private ExternalInputListListener externalInputListener = new ExternalInputListListener() {
-
-        @Override
-        public void onSuccess(List<ExternalInputInfo> externalInputList) {
-            adapter.clear();
-            for (int i = 0; i < externalInputList.size(); i++) {
-                ExternalInputInfo input = externalInputList.get(i);
-                final String deviceId = input.getId();
-
-                adapter.add(deviceId);
-            }
-        }
-
-        @Override
-        public void onError(ServiceCommandError arg0) {
-        }
-    };
 
     private VolumeListener volumeListener = new VolumeListener() {
 
@@ -292,13 +486,6 @@ public class UpdatedMediaFragment extends BaseFragment {
         }
     };
 
-    private OnClickListener stopClickListener = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            getMediaControl().stop(null);
-        }
-    };
 
     private OnClickListener rewindClickListener = new OnClickListener() {
 
@@ -318,7 +505,7 @@ public class UpdatedMediaFragment extends BaseFragment {
 
     @Override
     public void disableButtons() {
-        adapter.clear();
+
         volumeSlider.setEnabled(false);
         volumeSlider.setOnSeekBarChangeListener(null);
 
@@ -332,6 +519,8 @@ public class UpdatedMediaFragment extends BaseFragment {
             mMuteSubscription.unsubscribe();
             mMuteSubscription = null;
         }
+
+        trackpadView.setOnTouchListener(null);
 
         super.disableButtons();
     }

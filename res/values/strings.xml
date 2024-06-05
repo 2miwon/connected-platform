@@ -10,6 +10,7 @@
     	<item>Apps</item>
     	<item>TV</item>
     	<item>System</item>
+        <item>My Section </item>
 
 
     </string-array>
@@ -20,6 +21,7 @@
         <item>@drawable/icon_3330</item>
         <item>@drawable/icon_17114</item>
         <item>@drawable/icon_15111</item>
+        <item>@drawable/icon_17183</item>
         <item>@drawable/icon_17183</item>
 
 
