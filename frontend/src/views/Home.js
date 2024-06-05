@@ -84,7 +84,7 @@ const Home = () => {
 			<div className={css.mediaContainer}>
 
 			  {filteredVideos.map((video, index) => (
-          <MediaOverlay key={index} text={video.text} loo p>
+          <MediaOverlay key={index} text={video.text} loop>
             <source src={video.src} />
           </MediaOverlay>
         ))}

@@ -5,6 +5,7 @@ import Home from './Home';
 import Video from './Video';
 import Account from './Account';
 import HLSVideo from './HLSVideo';
+import MyPage from './SecondTab';
 
 const Main = (props) => {
 	return (
@@ -15,7 +16,7 @@ const Main = (props) => {
 					<Home />
 				</Tab>
 				<Tab title={$L('Second Home')}>
-					<Home />
+					<MyPage />
 				</Tab>
 				<Tab title={$L('Video Player')}>
 					<Video src="http://media.w3.org/2010/05/sintel/trailer.mp4" />
