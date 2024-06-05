@@ -22,6 +22,7 @@ type User struct {
     Username string `bson:"username"`
     Password string `bson:"password"`
 	Created primitive.Timestamp `bson:"created"`
+	Token string `bson:"token"`
 }
 
 type Video struct {
@@ -54,13 +55,6 @@ type History struct {
 	Progress *float64 `bson:"progress"`
 	Updated primitive.Timestamp `bson:"updated"`
 	Deleted *primitive.Timestamp `bson:"deleted"`
-}
-
-type Session struct {
-	ID       string `bson:"_id,omitempty"`
-	UserID string `bson:"user_id"`
-	Token string
-	Expired primitive.Timestamp `bson:"expired"`
 }
 
 func connectDB(uri string) (*mongo.Client, context.Context, error) {
@@ -108,6 +102,19 @@ func checkDocumentExists(collection *mongo.Collection, ctx context.Context, filt
 	return nil
 }
 
+func checkDocumentNotExists(collection *mongo.Collection, ctx context.Context, filter bson.M, message string) error {
+	num, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	if num != 0 {
+		return fmt.Errorf(message)
+	}
+
+	return nil
+}
+
 // func createSession(collection *mongo.Collection, ctx context.Context) (*mongo.InsertOneResult, error) {
 	
 	
@@ -118,6 +125,14 @@ func checkDocumentExists(collection *mongo.Collection, ctx context.Context, filt
 // 	return rst, nil
 
 // }
+func jsonParser(c *fiber.Ctx) map[string]interface{} {
+	var body map[string]interface{}
+	err := c.BodyParser(&body)
+	if err != nil {
+		return nil
+	}
+	return body
+}
 
 func main() {
 	err := godotenv.Load()
@@ -158,91 +173,135 @@ func main() {
 
 	app.Get("/user/all", func(c *fiber.Ctx) error {
 		collection := db.Collection("users")
-		rst, err := collection.Find(ctx, bson.M{})
+		cursor, err := collection.Find(ctx, bson.M{})
 		checkErr(err)
-		return c.SendString(fmt.Sprintf("%v", rst))
+
+		var users []User
+		if err = cursor.All(ctx, &users); err != nil {
+			return c.SendStatus(500)
+		}
+
+		for _, user := range users {
+			user.Password = ""
+		}
+
+		return c.SendString(fmt.Sprintf("%v", users))
 	})
 	
 	app.Post("/user/create", func(c *fiber.Ctx) error {
-		// 필터 값 정의
-		filter := bson.M{"email": c.FormValue("email") , "username": c.FormValue("username")}
-		
 		collection := db.Collection("users")
-		
-		err = checkDocumentExists(collection, ctx, filter, "User already exists")
-		checkErr(err)
+		body := jsonParser(c)
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(c.FormValue("password")), bcrypt.DefaultCost)
-		checkErr(err)
+		filter := bson.M{"email": body["email"].(string)}
+		
+		err = checkDocumentNotExists(collection, ctx, filter, "User already exists")
+		if err != nil {
+			return c.SendStatus(400)
+		}
+	
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body["password"].(string)), bcrypt.DefaultCost)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
+		token, err := bcrypt.GenerateFromPassword([]byte(body["email"].(string)), bcrypt.DefaultCost)
+		if err != nil {
+			return c.SendStatus(500)
+		}
 
 		user := User{
-			Email: c.FormValue("email"),
-			Username: c.FormValue("username"),
+			Email: body["email"].(string),
+			Username: body["email"].(string),
 			Password: string(hashedPassword),
 			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
+			Token: string(token),
 		}
 
 		rst, err := createUser(collection, ctx, user)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
-	app.Get("/user/info/:id", func(c *fiber.Ctx) error {
+	app.Post("/user/my_info", func(c *fiber.Ctx) error {
 		collection := db.Collection("users")
-		rst, err := collection.Find(ctx, bson.M{"_id": c.Params("id")})
-		checkErr(err)
-		return c.SendString(fmt.Sprintf("%v", rst))
+
+		body := jsonParser(c)
+		var rst bson.M
+		err := collection.FindOne(ctx, bson.M{"token": body["token"].(string)}).Decode(&rst)
+		if err != nil {
+			return c.SendStatus(403)
+		}
+
+		return c.JSON(rst)
 	})	
 	
 	app.Post("/video/create", func(c *fiber.Ctx) error {
 		collection := db.Collection("videos")
+		body := jsonParser(c)
+
 		video := Video{
-			Title: c.FormValue("title"),
-			Content: c.FormValue("content"),
-			URL: c.FormValue("url"),
-			ThumbnailURL: c.FormValue("thumbnail_url"),
-			AuthorID: c.FormValue("author_id"),
+			Title: body["title"].(string),
+			Content: body["content"].(string),
+			URL: body["url"].(string),
+			ThumbnailURL: body["thumbnail_url"].(string),
+			AuthorID: body["author_id"].(string),
 			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
 		}
+
 		rst, err := collection.InsertOne(ctx, video)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
 	app.Post("/video/update", func(c *fiber.Ctx) error {
 		collection := db.Collection("videos")
-		
+		body := jsonParser(c)
+
 		filter := bson.M{
-			"_id": c.FormValue("video_id"),
-			"author_id": c.FormValue("author_id"),
+			"_id": body["video_id"],
+			"author_id": body["my_id"],
 		}
 		err := checkDocumentExists(collection, ctx, filter, "Video not found")
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
 
 		update := bson.M{
 			"$set": bson.M{
-				"title": c.FormValue("title"), 
-				"content": c.FormValue("content"), 
-				"url": c.FormValue("url"), 
-				"thumbnail_url": c.FormValue("thumbnail_url"), 
+				"title": body["title"],
+				"content": body["content"],
+				"url": body["url"],
+				"thumbnail_url": body["thumbnail_url"],
 				"updated": primitive.Timestamp{T: uint32(time.Now().Unix())},
 			},
 		}
 		rst, err := collection.UpdateOne(ctx, filter, update)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
 	app.Post("/video/delete", func(c *fiber.Ctx) error {
 		collection := db.Collection("videos")
+		body := jsonParser(c)
 
 		filter := bson.M{
-			"_id": c.FormValue("video_id"),
-			"author_id": c.FormValue("my_id"),
+			"_id": body["video_id"],
+			"author_id": body["my_id"],
 		}
 
 		err := checkDocumentExists(collection, ctx, filter, "Video not found")
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
 
 		update := bson.M{
 			"$set": bson.M{
@@ -250,36 +309,46 @@ func main() {
 			},
 		}
 		rst, err := collection.UpdateOne(ctx, filter, update)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
 		return c.JSON(rst)
 	})
 
 	app.Get("/video/info/:video_id", func(c *fiber.Ctx) error {
 		collection := db.Collection("videos")
 		rst, err := collection.Find(ctx, bson.M{"_id": c.Params("video_id")})
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
+
 		return c.SendString(fmt.Sprintf("%v", rst))
 	})
 
 	app.Post("/feedback/create", func(c *fiber.Ctx) error {
 		collection := db.Collection("feedbacks")
+		body := jsonParser(c)
+
 		feedback := Feedback{
-			PostID: c.FormValue("post_id"),
-			UserID: c.FormValue("author_id"),
+			PostID: body["post_id"].(string),
+			UserID: body["author_id"].(string),
 			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
 			Updated: primitive.Timestamp{T: uint32(time.Now().Unix())},
 		}
 		rst, err := collection.InsertOne(ctx, feedback)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
 		return c.JSON(rst)
 	})
 
 	app.Post("/feedback/update", func(c *fiber.Ctx) error {
 		collection := db.Collection("feedbacks")
+		body := jsonParser(c)
 
 		filter := bson.M{
-			"post_id": c.FormValue("post_id"),
-			"author_id": c.FormValue("my_id"),
+			"post_id": body["post_id"],
+			"author_id": body["my_id"],
 			"deleted": nil,
 		}
 
@@ -290,37 +359,43 @@ func main() {
 			"$set": bson.M{},
 		}
 
-		if c.FormValue("content") != "" {
-			update["$set"].(bson.M)["content"] = c.FormValue("content")
+		if body["content"] != nil {
+			update["$set"].(bson.M)["content"] = body["content"]
 		}
 
-		if c.FormValue("like") != ""{
-			update["$set"].(bson.M)["like"] = c.FormValue("like")
+		if body["like"] != nil {
+			update["$set"].(bson.M)["like"] = body["like"]
 		}
 
-		if c.FormValue("bookmark") != "" {
-			update["$set"].(bson.M)["bookmark"] = c.FormValue("bookmark")
+		if body["bookmark"] != nil {
+			update["$set"].(bson.M)["bookmark"] = body["bookmark"]
 		}
 
 		update["$set"].(bson.M)["updated"] = primitive.Timestamp{T: uint32(time.Now().Unix())}
 
 		rst, err := collection.UpdateOne(ctx, filter, update)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
 	app.Post("/feedback/delete", func(c *fiber.Ctx) error {
 		collection := db.Collection("feedbacks")
+		body := jsonParser(c)
 		
 		filter := bson.M{
-			"_id": c.FormValue("feedback_id"), 
-			"post_id": c.FormValue("post_id"), 
-			"author_id": c.FormValue("my_id"), 
+			"_id": body["feedback_id"],
+			"post_id": body["post_id"],
+			"author_id": body["my_id"],
 			"deleted": nil,
 		}
 
 		err := checkDocumentExists(collection, ctx, filter, "Feedback info not found")
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(403)
+		}
 
 		update := bson.M{
 			"$set": bson.M{
@@ -328,45 +403,58 @@ func main() {
 			},
 		}
 		rst, err := collection.UpdateOne(ctx, filter, update)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
 		return c.JSON(rst)
 	})
 
 	app.Get("/feedback/info/:post_id", func(c *fiber.Ctx) error {
 		collection := db.Collection("feedbacks")
+		body := jsonParser(c)
 
 		filter := bson.M{
-			"post_id": c.Params("post_id"),
+			"post_id": body["post_id"],
 			"deleted": nil,
 		}
 
 		rst, err := collection.Find(ctx, filter)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
 		return c.SendString(fmt.Sprintf("%v", rst))
 	})
 
 	app.Post("/history/create", func(c *fiber.Ctx) error {
 		collection := db.Collection("histories")
+		body := jsonParser(c)
+
 		history := History{
-			PostID: c.FormValue("post_id"),
-			UserID: c.FormValue("user_id"),
+			PostID: body["post_id"].(string),
+			UserID: body["user_id"].(string),
 			Updated: primitive.Timestamp{T: uint32(time.Now().Unix())},
 		}
 		rst, err := collection.InsertOne(ctx, history)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
 	app.Post("/history/update", func(c *fiber.Ctx) error {
 		collection := db.Collection("histories")
+		body := jsonParser(c)
 
 		filter := bson.M{
-			"post_id": c.FormValue("post_id"),
-			"user_id": c.FormValue("user_id"),
+			"post_id": body["post_id"],
+			"user_id": body["user_id"],
 		}
 
 		err := checkDocumentExists(collection, ctx, filter, "History not found")
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
 
 		update := bson.M{
 			"$set": bson.M{},
@@ -374,26 +462,32 @@ func main() {
 
 		update["$set"].(bson.M)["updated"] = primitive.Timestamp{T: uint32(time.Now().Unix())}
 
-		if c.FormValue("progress") != "" {
-			update["$set"].(bson.M)["progress"] = c.FormValue("progress")
+		if body["progress"] != nil {
+			update["$set"].(bson.M)["progress"] = body["progress"]
 		}
 
 
 		rst, err := collection.UpdateOne(ctx, filter, update)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
 	app.Post("/history/delete", func(c *fiber.Ctx) error {
 		collection := db.Collection("histories")
+		body := jsonParser(c)
 
 		filter := bson.M{
-			"post_id": c.FormValue("post_id"),
-			"user_id": c.FormValue("user_id"),
+			"post_id": body["post_id"],
+			"user_id": body["user_id"],
 		}
 
 		err := checkDocumentExists(collection, ctx, filter, "History not found")
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
 
 		update := bson.M{
 			"$set": bson.M{
@@ -401,7 +495,10 @@ func main() {
 			},
 		}
 		rst, err := collection.UpdateOne(ctx, filter, update)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
 		return c.JSON(rst)
 	})
 
@@ -414,23 +511,34 @@ func main() {
 		}
 
 		rst, err := collection.Find(ctx, filter)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
+
 		return c.SendString(fmt.Sprintf("%v", rst))
 	})
 
 	app.Post("/login", func(c *fiber.Ctx) error {
 		collection := db.Collection("users")
-		filter := bson.M{"_id": c.FormValue("user_id")}
+		body := jsonParser(c)
+
+		filter := bson.M{"email": body["email"].(string)}
 		err := checkDocumentExists(collection, ctx, filter, "User not found")
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(400)
+		}
 
 		user := User{}
 		
 		err = collection.FindOne(ctx, filter).Decode(&user)
-		checkErr(err)
+		if err != nil {
+			return c.SendStatus(500)
+		}
 
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(c.FormValue("password")))
-		checkErr(err)
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body["password"].(string)))
+		if err != nil {
+			return c.SendStatus(403)
+		}
 
 		// createSession(
 	
