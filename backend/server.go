@@ -20,7 +20,7 @@ type User struct {
 	Email	 string `bson:"email"`
     Username string `bson:"username"`
     Password string `bson:"password"`
-	Created primitive.Timestamp `bson:"timestamp"`
+	Created primitive.Timestamp `bson:"created"`
 }
 
 type Post struct {
@@ -30,8 +30,8 @@ type Post struct {
 	URL 	 string `bson:"url"`
 	ThumbnailURL string `bson:"thumbnail_url"`
 	AuthorID string `bson:"author_id"`
-	Created  string `bson:"created"`
-	Deleted bool `bson:"deleted"`
+	Created primitive.Timestamp `bson:"created"`
+	Deleted primitive.Timestamp `bson:"deleted"`
 }
 
 type Feedback struct {
@@ -41,9 +41,9 @@ type Feedback struct {
 	Content  string `bson:"content"`
 	Bookmark bool `bson:"bookmark"`
 	Like bool `bson:"like"`
-	Created  string `bson:"created"`
-	Updated string `bson:"updated"`
-	Deleted bool `bson:"deleted"`
+	Created primitive.Timestamp `bson:"created"`
+	Updated primitive.Timestamp `bson:"updated"`
+	Deleted primitive.Timestamp `bson:"deleted"`
 }
 
 type History struct {
@@ -51,15 +51,15 @@ type History struct {
 	PostID	 string `bson:"post_id"`
 	UserID string `bson:"author_id"`
 	Progress float64 `bson:"progress"`
-	Updated primitive.Timestamp `bson:"timestamp"`
-	Deleted bool `bson:"deleted"`
+	Updated primitive.Timestamp `bson:"updated"`
+	Deleted primitive.Timestamp `bson:"deleted"`
 }
 
 type Session struct {
 	ID       string `bson:"_id,omitempty"`
 	UserID string `bson:"user_id"`
 	Token string
-	Expired primitive.Timestamp `bson:"timestamp"`
+	Expired primitive.Timestamp `bson:"expired"`
 }
 
 func connectDB(uri string) (*mongo.Client, context.Context, error) {
@@ -101,6 +101,8 @@ func main() {
 	client, ctx, err := connectDB(db_uri)
 	checkErr(err)
 
+	db := client.Database("mooc")
+
 	defer client.Disconnect(ctx)
 
 	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
@@ -111,7 +113,7 @@ func main() {
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		collection := client.Database("mooc").Collection("users")
+		collection := db.Collection("users")
 		collections, err := client.Database("mooc").ListCollectionNames(ctx, bson.M{})
 		// rst, err := collection.Find(ctx, bson.M{})
 		// checkErr(err)
