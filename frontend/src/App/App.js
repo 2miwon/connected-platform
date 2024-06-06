@@ -5,6 +5,7 @@ import Main from '../views/Main';
 import {useBackHandler, useCloseHandler, useDocumentEvent} from './AppState';
 import {isDevServe} from '../libs/utils';
 
+
 /* istanbul ignore next*/
 if (isDevServe()) {
 	window.webOSSystem = {
@@ -32,6 +33,7 @@ const App = props => {
 			onBack={handleBack}
 			onClose={handleClose}
 		>
+
 			<Main />
 		</Panels>
 	);

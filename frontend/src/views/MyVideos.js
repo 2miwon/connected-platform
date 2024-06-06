@@ -27,7 +27,7 @@ import Input from '@enact/sandstone/Input';
 
 
 
-const MyPage = () => {
+const MyVideos = () => {
 	const data = useConfigs();
 	const {isPopupOpen, handlePopupOpen, handlePopupClose} = usePopup();
   const { isPopupOpen: isDeleteEditPopupOpen, handlePopupOpen: handleDeleteEditPopupOpen, handlePopupClose: handleDeleteEditPopupClose } = usePopup();
@@ -239,7 +239,7 @@ const MyPage = () => {
 };
 
 
-export default MyPage;
+export default MyVideos;
 
 //<BodyText>{`TV Info : ${JSON.stringify(data)}`}</BodyText>
 
