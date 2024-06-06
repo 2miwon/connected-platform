@@ -30,7 +30,7 @@ const Home = () => {
 	const {isPopupOpen, handlePopupOpen, handlePopupClose} = usePopup();
 	const [state, setState] = useState({
 		name: '',
-		filterType: 'name'
+		filterType: 'Order from A~Z'
 	});
 	const formatTime = (time) => 
 	{
@@ -48,16 +48,23 @@ const Home = () => {
   ];
 
 
-	const filterOptions = ['Filter by Name', 'Filter by Number'];
+  	const filterOptions = ['Order from A~Z', 'Order from Z~A', 'Order by Position', 'Reverse Order by Position'];
 
-	const filteredVideos = videos.filter(video => {
-    if (state.filterType === 'name') {
-      return video.text.toLowerCase().includes(state.name.toLowerCase());
-    } else if (state.filterType === 'number') {
-      return video.text.toLowerCase().includes(state.name.toLowerCase().replace('video ', ''));
-    }
-    return true;
-  });
+
+	  const filteredVideos = videos
+    .filter(video => video.text.toLowerCase().includes(state.name.toLowerCase()))
+    .sort((a, b) => {
+      if (state.filterType === 'Order from A~Z') {
+        return a.text.localeCompare(b.text);
+      } else if (state.filterType === 'Order from Z~A') {
+        return b.text.localeCompare(a.text);
+      } else if (state.filterType === 'Order by Position') {
+        return videos.indexOf(a) - videos.indexOf(b);
+      } else if (state.filterType === 'Reverse Order by Position') {
+        return videos.indexOf(b) - videos.indexOf(a);
+      }
+      return 0;
+    });
 
 	return (
 		<>
@@ -71,15 +78,19 @@ const Home = () => {
 				placeholder="Search"
 			/>
 
-			</div>
-			<Dropdown
-				title="Filter Type"
-				selected={state.filterType === 'name' ? 0 : 1}
-				onSelect={ev => setState(prev => ({ ...prev, filterType: ev.selected === 0 ? 'name' : 'number' }))}
-			>
-				{filterOptions}
-			</Dropdown>
+				<div className={css.dropDownAlign}>
+					<Dropdown
+						title="Filter Type"
+						selected={filterOptions.indexOf(state.filterType)}
+            			onSelect={ev => setState(prev => ({ ...prev, filterType: filterOptions[ev.selected] }))}
+					>
+						{filterOptions}
+					</Dropdown>
 
+				</div>
+
+			</div>
+			
 
 			<div className={css.mediaContainer}>
 

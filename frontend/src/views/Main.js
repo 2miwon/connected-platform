@@ -15,7 +15,7 @@ const Main = (props) => {
 				<Tab title={$L('Home')}>
 					<Home />
 				</Tab>
-				<Tab title={$L('Second Home')}>
+				<Tab title={$L('My Page')}>
 					<MyPage />
 				</Tab>
 				<Tab title={$L('Video Player')}>
