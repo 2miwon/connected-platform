@@ -30,7 +30,7 @@ type Video struct {
 	Title	 string `bson:"title"`
 	Content  string `bson:"content"`
 	URL 	 string `bson:"url"`
-	ThumbnailURL string `bson:"thumbnail_url"`
+	ThumbnailURL *string `bson:"thumbnail_url"`
 	AuthorID string `bson:"author_id"`
 	Created primitive.Timestamp `bson:"created"`
 	Deleted *primitive.Timestamp `bson:"deleted"`
@@ -277,10 +277,15 @@ func main() {
 				"title": body["title"],
 				"content": body["content"],
 				"url": body["url"],
-				"thumbnail_url": body["thumbnail_url"],
+				
 				"updated": primitive.Timestamp{T: uint32(time.Now().Unix())},
 			},
 		}
+
+		if body["thumbnail_url"] != nil {
+			update["$set"].(bson.M)["thumbnail_url"] = body["thumbnail_url"]
+		}
+
 		rst, err := collection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			return c.SendStatus(500)
@@ -539,20 +544,8 @@ func main() {
 		if err != nil {
 			return c.SendStatus(403)
 		}
-
-		// createSession(
-	
-
-		// token :=
-		// `{
-		// 	"token":
-		// 	{
-		// 		"access
-		// 	}
-		// }`
-			
-		// return c.JSON(token)
-		return nil
+		
+		return c.JSON(user.Token)
 	})
 
 	app.Listen(":3000")
