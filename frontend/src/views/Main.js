@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import TabLayout, {Tab} from '@enact/sandstone/TabLayout';
 import {Header, Panel} from '@enact/sandstone/Panels';
 import $L from '@enact/i18n/$L';

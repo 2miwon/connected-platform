@@ -31,7 +31,7 @@ type Video struct {
 	Title	 string `bson:"title"`
 	Content  string `bson:"content"`
 	URL 	 string `bson:"url"`
-	ThumbnailURL *string `bson:"thumbnail_url"`
+	// ThumbnailURL *string `bson:"thumbnail_url"`
 	AuthorID string `bson:"author_id"`
 	Created primitive.Timestamp `bson:"created"`
 	Deleted *primitive.Timestamp `bson:"deleted"`
@@ -160,6 +160,7 @@ func main() {
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
+		// swagger api doc
 		return c.JSON(db)
 	})
 
@@ -168,30 +169,13 @@ func main() {
 		collection := db.Collection(colName)
 		rst, err := collection.Find(ctx, bson.M{})
 		checkErr(err)
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Get("/all", func(c *fiber.Ctx) error {
 		collections, err := db.ListCollectionNames(ctx, bson.M{})
 		checkErr(err)
 		return c.JSON(collections)
-	})
-
-	app.Get("/user/all", func(c *fiber.Ctx) error {
-		collection := db.Collection("users")
-		cursor, err := collection.Find(ctx, bson.M{})
-		checkErr(err)
-
-		var users []User
-		if err = cursor.All(ctx, &users); err != nil {
-			return c.SendStatus(500)
-		}
-
-		for _, user := range users {
-			user.Password = ""
-		}
-
-		return c.SendString(fmt.Sprintf("%v", users))
 	})
 	
 	app.Post("/user/create", func(c *fiber.Ctx) error {
@@ -256,9 +240,9 @@ func main() {
 			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
 		}
 
-		if body["thumbnail_url"] != nil {
-			video.ThumbnailURL = body["thumbnail_url"].(*string)
-		}
+		// if body["thumbnail_url"] != nil {
+		// 	video.(bson.M)["thumbnail_url"] = body["thumbnail_url"]
+		// }
 
 		rst, err := collection.InsertOne(ctx, video)
 		if err != nil {
@@ -266,6 +250,19 @@ func main() {
 		}
 
 		return c.JSON(rst)
+	})
+
+	app.Get("/video/all", func(c *fiber.Ctx) error {
+		collection := db.Collection("videos")
+		cursor, err := collection.Find(ctx, bson.M{})
+		checkErr(err)
+
+		var videos []Video
+		if err = cursor.All(ctx, &videos); err != nil {
+			return c.SendStatus(500)
+		}
+
+		return c.JSON(videos)
 	})
 
 	app.Post("/video/update", func(c *fiber.Ctx) error {
@@ -291,9 +288,9 @@ func main() {
 			},
 		}
 
-		if body["thumbnail_url"] != nil {
-			update["$set"].(bson.M)["thumbnail_url"] = body["thumbnail_url"]
-		}
+		// if body["thumbnail_url"] != nil {
+		// 	update["$set"].(bson.M)["thumbnail_url"] = body["thumbnail_url"]
+		// }
 
 		rst, err := collection.UpdateOne(ctx, filter, update)
 		if err != nil {
@@ -336,7 +333,7 @@ func main() {
 			return c.SendStatus(400)
 		}
 
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Post("/feedback/create", func(c *fiber.Ctx) error {
@@ -436,7 +433,7 @@ func main() {
 		if err != nil {
 			return c.SendStatus(400)
 		}
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Post("/history/create", func(c *fiber.Ctx) error {
@@ -529,7 +526,7 @@ func main() {
 			return c.SendStatus(400)
 		}
 
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Post("/login", func(c *fiber.Ctx) error {

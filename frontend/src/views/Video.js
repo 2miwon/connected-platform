@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import VideoPlayer from '@enact/sandstone/VideoPlayer';
 import { MediaControls } from '@enact/sandstone/MediaPlayer';
 import Button from '@enact/sandstone/Button';
