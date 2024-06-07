@@ -130,6 +130,16 @@ func jsonParser(c *fiber.Ctx) map[string]interface{} {
 	return body
 }
 
+// @title SuperNova API
+// @version 1.0
+// @description This is a swagger docs for Fiber
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email fiber@swagger.io
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host 3.36.212.250:3000
+// @BasePath /docs
 func main() {
 	err := godotenv.Load()
 	checkErr(err)
