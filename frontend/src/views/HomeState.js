@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 // This is bundle of states of Main.js
 import css from './Main.module.less';
 

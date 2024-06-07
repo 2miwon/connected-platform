@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import Alert from '@enact/sandstone/Alert';
 import BodyText from '@enact/sandstone/BodyText';
 import Button from '@enact/sandstone/Button';
@@ -6,8 +8,7 @@ import $L from '@enact/i18n/$L';
 import {useConfigs} from '../hooks/configs';
 import {usePopup} from './HomeState';
 import {InputField} from '@enact/sandstone/Input';
-
-
+import {fetchAllVideos} from '../hooks/fetch';
 
 import {useVideoTime} from './HomeState';
 // Import react
@@ -48,8 +49,8 @@ const MyVideos = () => {
         { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4' }
       ]);
 
-
     const handleAddVideo = () => {
+        fetchAllVideos();
         setVideos([...videos, { text: newVideoTitle, src: newVideoSrc }]);
         setNewVideoTitle('');
         setNewVideoSrc('');

@@ -177,21 +177,17 @@ func main() {
 		return c.JSON(collections)
 	})
 
-	app.Get("/user/all", func(c *fiber.Ctx) error {
-		collection := db.Collection("users")
+	app.Get("/video/all", func(c *fiber.Ctx) error {
+		collection := db.Collection("videos")
 		cursor, err := collection.Find(ctx, bson.M{})
 		checkErr(err)
 
-		var users []User
-		if err = cursor.All(ctx, &users); err != nil {
+		var videos []Video
+		if err = cursor.All(ctx, &videos); err != nil {
 			return c.SendStatus(500)
 		}
 
-		for _, user := range users {
-			user.Password = ""
-		}
-
-		return c.SendString(fmt.Sprintf("%v", users))
+		return c.SendString(fmt.Sprintf("%v", videos))
 	})
 	
 	app.Post("/user/create", func(c *fiber.Ctx) error {

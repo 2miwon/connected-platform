@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React, { useState } from 'react';
 import { Button } from '@enact/sandstone/Button';
 import { InputField } from '@enact/sandstone/Input';
