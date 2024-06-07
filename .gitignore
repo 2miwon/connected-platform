@@ -2,3 +2,4 @@
 .env
 
 node_modules/
+frontend/node_modules/.cache/eslint-webpack-plugin/.eslintcache
