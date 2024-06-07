@@ -160,6 +160,7 @@ func main() {
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
+		// swagger api doc
 		return c.JSON(db)
 	})
 
@@ -168,7 +169,7 @@ func main() {
 		collection := db.Collection(colName)
 		rst, err := collection.Find(ctx, bson.M{})
 		checkErr(err)
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Get("/all", func(c *fiber.Ctx) error {
@@ -261,7 +262,7 @@ func main() {
 			return c.SendStatus(500)
 		}
 
-		return c.SendString(fmt.Sprintf("%v", videos))
+		return c.JSON(videos)
 	})
 
 	app.Post("/video/update", func(c *fiber.Ctx) error {
@@ -332,7 +333,7 @@ func main() {
 			return c.SendStatus(400)
 		}
 
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Post("/feedback/create", func(c *fiber.Ctx) error {
@@ -432,7 +433,7 @@ func main() {
 		if err != nil {
 			return c.SendStatus(400)
 		}
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Post("/history/create", func(c *fiber.Ctx) error {
@@ -525,7 +526,7 @@ func main() {
 			return c.SendStatus(400)
 		}
 
-		return c.SendString(fmt.Sprintf("%v", rst))
+		return c.JSON(rst)
 	})
 
 	app.Post("/login", func(c *fiber.Ctx) error {
