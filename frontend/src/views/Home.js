@@ -8,7 +8,7 @@ import $L from '@enact/i18n/$L';
 import {useConfigs} from '../hooks/configs';
 import {usePopup} from './HomeState';
 import {InputField} from '@enact/sandstone/Input';
-
+import {fetchAllVideos, debug} from '../hooks/fetch';
 
 
 import {useVideoTime} from './HomeState';
@@ -48,8 +48,8 @@ const Home = () => {
     { text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4' },
     { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4' }
   ];
-
-
+  	console.log("DSD", fetchAllVideos())
+  	console.log("debug", debug())
   	const filterOptions = ['Order from A~Z', 'Order from Z~A', 'Order by Position', 'Reverse Order by Position'];
 
 
