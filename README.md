@@ -1,6 +1,12 @@
 # connected-platform
 2024-1 yonsei X LG WebOS connected platform project
 
+# Introduction of Teammate
+
+Heewon Lim - Backend / DB Developer
+
+Hojae Lee - Frontend / Android Developer
+
 # Project that we chose 
 We decided to develop on (1) Media Web Application for this '24 Spring Project.
 
@@ -16,7 +22,4 @@ Created repository for further development of hte media web application
 2. Use authorized APIs from streaming service and adapt it to our program.
 
 
-# Teammate roles
-Im Heewon - Backend Developer
 
-Lee Hojae - Frontend Developer
