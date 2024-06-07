@@ -14,13 +14,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
 	"golang.org/x/crypto/bcrypt"
 
-	// replace with your own docs folder, usually "github.com/username/reponame/docs"
-	// _ "github.com/2miwon/connected-platform/backend/docs"
-	"github.com/gofiber/swagger"
+	_ "github.com/2miwon/video-streaming/docs"
 )
 
 type User struct {
@@ -122,16 +121,6 @@ func checkDocumentNotExists(collection *mongo.Collection, ctx context.Context, f
 	return nil
 }
 
-// func createSession(collection *mongo.Collection, ctx context.Context) (*mongo.InsertOneResult, error) {
-	
-	
-// 	rst, err := collection.InsertOne(ctx, json)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return rst, nil
-
-// }
 func jsonParser(c *fiber.Ctx) map[string]interface{} {
 	var body map[string]interface{}
 	err := c.BodyParser(&body)
@@ -145,22 +134,18 @@ func main() {
 	err := godotenv.Load()
 	checkErr(err)
 	db_uri := os.Getenv("DB_URI")
-	
+
 	client, ctx, err := connectDB(db_uri)
 	checkErr(err)
 
 	db := client.Database("mooc")
-
 	defer client.Disconnect(ctx)
-
 	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
 		panic(err)
 	}
 	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
 	app := fiber.New()
-
-	app.Use(swagger.New())
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*", // "http://localhost:3000"
