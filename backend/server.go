@@ -246,9 +246,12 @@ func main() {
 			Title: body["title"].(string),
 			Content: body["content"].(string),
 			URL: body["url"].(string),
-			ThumbnailURL: body["thumbnail_url"].(string),
 			AuthorID: body["author_id"].(string),
 			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
+		}
+
+		if body["thumbnail_url"] != nil {
+			video.ThumbnailURL = body["thumbnail_url"].(*string)
 		}
 
 		rst, err := collection.InsertOne(ctx, video)
