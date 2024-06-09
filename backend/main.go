@@ -310,14 +310,16 @@ func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 		return c.SendStatus(400)
 	}
 	
-	rst, err := collection.Find(ctx, bson.M{"author_id": id})
-	if err != nil {
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	checkErr(err)
+
+	var videos []Video
+	if err = cursor.All(ctx, &videos); err != nil {
 		return c.SendStatus(500)
 	}
 
-	log.Println(rst)
-
-	return c.JSON(rst)
+	return c.JSON(videos)
 }
 
 // @Summary Get video info
