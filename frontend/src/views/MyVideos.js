@@ -107,7 +107,7 @@ const MyVideos = () => {
   const handleEditVideo = () => {
     if (selectedVideo !== null) {
       const updatedVideos = videos?.map((video, index) =>
-        index === selectedVideo ? { ...video, text: editVideoTitle, src: editVideoSrc, content: editVideoContent, thumbnail: editVideoThumbnail } : video
+        index === selectedVideo ? { ...video, text: editVideoTitle, src: editVideoSrc, content: editVideoContent } : video
       );
       setVideos(updatedVideos);
       setSelectedVideo(null);
