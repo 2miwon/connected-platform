@@ -453,6 +453,34 @@ func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	return c.SendStatus(200)
 }
 
+func addComment(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("videos")
+	body := jsonParser(c)
+
+	filter := bson.M{
+		"_id": body["video_id"],
+	}
+	err := checkDocumentExists(collection, ctx, filter, "Video not found")
+	if err != nil {
+		return c.SendStatus(400)
+	}
+
+	add := bson.M{
+		"$push": bson.M{},
+	}
+
+	if body["comment"] != nil {
+		add["$push"] = bson.M{"comments": body["add_comment"].(string)}
+	}
+
+	_, err = collection.UpdateOne(ctx, filter, add)
+	if err != nil {
+	    return c.SendStatus(500)
+	}
+	
+	return c.SendStatus(200)
+}
+
 // @title SuperNova API
 // @version 1.0
 // @description This is a swagger docs for Fiber
@@ -568,40 +596,12 @@ func main() {
 		return registerUser(c, ctx, db)
 	})
 
-	// app.Post("/video/update", func(c *fiber.Ctx) error {
-	// 	collection := db.Collection("videos")
-	// 	body := jsonParser(c)
-
-	// 	filter := bson.M{
-	// 		"_id": body["video_id"],
-	// 		"author_id": body["my_id"],
-	// 	}
-	// 	err := checkDocumentExists(collection, ctx, filter, "Video not found")
-	// 	if err != nil {
-	// 		return c.SendStatus(400)
-	// 	}
-
-	// 	update := bson.M{
-	// 		"$set": bson.M{
-	// 			"title": body["title"],
-	// 			"content": body["content"],
-	// 			"url": body["url"],
-				
-	// 			"updated": primitive.Timestamp{T: uint32(time.Now().Unix())},
-	// 		},
-	// 	}
-
-	// 	// if body["thumbnail_url"] != nil {
-	// 	// 	update["$set"].(bson.M)["thumbnail_url"] = body["thumbnail_url"]
-	// 	// }
-
-	// 	rst, err := collection.UpdateOne(ctx, filter, update)
-	// 	if err != nil {
-	// 		return c.SendStatus(500)
-	// 	}
-
-	// 	return c.JSON(rst)
-	// })
+	app.Post("/video/comment", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
+		return addComment(c, ctx, db)
+	})
 
 	app.Listen(":3000")
 }
