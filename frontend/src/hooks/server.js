@@ -93,3 +93,15 @@ export const deleteVideo = async (video_id) => {
     console.error(error);
   }
 }
+
+export const addUserHistory = async (user, video_id) => {
+  try {
+    const response = await axios.post(`${API_URL}//user/update`, {
+      token: user.token,
+      video_history: video_id
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
