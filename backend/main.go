@@ -457,6 +457,10 @@ func addComment(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 	body := jsonParser(c)
 
+	if body["video_id"] == nil {
+		return c.SendStatus(400)
+	}
+
 	filter := bson.M{
 		"_id": body["video_id"],
 	}
