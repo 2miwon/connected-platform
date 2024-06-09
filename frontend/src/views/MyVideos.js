@@ -53,7 +53,7 @@ const MyVideos = () => {
       const handleAddVideo = async () => {
         const user = { id: 1 }; // Replace this with actual user data
         try {
-          const response = await addVideo(newVideoTitle, '', newVideoSrc, user);
+          const response = await addVideo(newVideoTitle, 'this is contents', newVideoSrc, user);
           if (response) {
             setVideos([...videos, { text: newVideoTitle, src: newVideoSrc }]);
             setNewVideoTitle('');

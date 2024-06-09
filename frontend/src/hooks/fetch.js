@@ -16,6 +16,15 @@ export const fetchAllVideos = async () => {
   }
 }
 
+export const fetchMyVideos = async (user) => {
+  try {
+    const response = await axios.get(`${API_URL}/video/user/${user.id}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export const addVideo = async (title, content, url, user) => {
   try {  
     const response = await axios.post(`${API_URL}/video/create`, {

@@ -28,6 +28,8 @@ type User struct {
     Password string `bson:"password"`
 	Created time.Time `bson:"created"`
 	Token string `bson:"token"`
+	History []VideoHistory `bson:"history"`
+	BookMark []string `bson:"bookmark"`
 }
 
 type Video struct {
@@ -39,27 +41,12 @@ type Video struct {
 	AuthorID string `bson:"author_id"`
 	Created time.Time `bson:"created"`
 	Deleted *time.Time `bson:"deleted"`
+	Comments []string `bson:"comments"`
 }
 
-type Feedback struct {
-	ID       string `bson:"_id,omitempty"`
-	PostID	 string `bson:"post_id"`
-	UserID string `bson:"author_id"`
-	Content  *string `bson:"content"`
-	Bookmarked *time.Time `bson:"bookmark"`
-	Like *bool `bson:"like"`
-	Created time.Time `bson:"created"`
-	Updated time.Time `bson:"updated"`
-	Deleted *time.Time `bson:"deleted"`
-}
-
-type History struct {
-	ID       string `bson:"_id,omitempty"`
-	PostID	 string `bson:"post_id"`
-	UserID string `bson:"user_id"`
-	Progress *float64 `bson:"progress"`
-	Updated time.Time `bson:"updated"`
-	Deleted *time.Time `bson:"deleted"`
+type VideoHistory struct {
+    VideoID string    `json:"video_id"`
+    Date    time.Time `json:"date"`
 }
 
 func connectDB(uri string) (*mongo.Client, context.Context, error) {
@@ -164,6 +151,7 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 		Password: string(hashedPassword),
 		Created: time.Now(),
 		Token: string(token),
+		BookMark: []string{},
 	}
 	rst, err := createUser(collection, ctx, user)
 	if err != nil {
@@ -250,6 +238,52 @@ func getAllVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	return c.JSON(videos)
 }
 
+// @Summary Delete a video
+// @Description Delete a video with video_id and author_id
+// @Tags videos
+// @Accept  json
+// @Produce  json
+// @Param   video_id     body    string     true        "Video ID"
+// @Param   my_id        body    string     true        "My ID"
+// @Success 200 {object} Video
+// @Failure 400 {object} string "Video not found"
+// @Failure 500 {object} string "Internal server error"
+// @Router /videos/delete [post]
+func deleteVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("videos")
+		body := jsonParser(c)
+
+		filter := bson.M{
+			"_id": body["video_id"],
+			"author_id": body["my_id"],
+		}
+
+		err := checkDocumentExists(collection, ctx, filter, "Video not found")
+		if err != nil {
+			return c.SendStatus(400)
+		}
+
+		update := bson.M{
+			"$set": bson.M{
+				"deleted": primitive.Timestamp{T: uint32(time.Now().Unix())},
+			},
+		}
+		rst, err := collection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+		return c.JSON(rst)
+}
+
+// @Summary Get my videos
+// @Description Get my videos with author_id
+// @Tags videos
+// @Accept  json
+// @Produce  json
+// @Param   id     body    string     true        "Author ID"
+// @Success 200 {object} Video
+// @Failure 500 {object} string "Internal server error"
+// @Router /videos/user/{id} [get]
 func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 	body := jsonParser(c)
@@ -260,6 +294,133 @@ func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	}
 
 	return c.JSON(rst)
+}
+
+// @Summary Get video info
+// @Description Get video info with video_id
+// @Tags videos
+// @Produce  json
+// @Param   video_id     path    string     true        "Video ID"
+// @Success 200 {object} Video
+// @Failure 400 {object} string "Internal server error"
+// @Router /videos/info/{video_id} [get]
+func getVideoInfo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("videos")
+	rst, err := collection.Find(ctx, bson.M{"_id": c.Params("video_id")})
+	if err != nil {
+		return c.SendStatus(400)
+	}
+
+	return c.JSON(rst)
+}
+
+// @Summary Login
+// @Description Login with email and password
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param   email     body    string     true        "Email"
+// @Param   password  body    string     true        "Password"
+// @Success 200 {object} string
+// @Failure 400 {object} string "User not found"
+// @Failure 403 {object} string "Invalid password"
+// @Failure 500 {object} string "Internal server error"
+// @Router /login [post]
+func login(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("users")
+		body := jsonParser(c)
+
+		filter := bson.M{"email": body["email"].(string)}
+		err := checkDocumentExists(collection, ctx, filter, "User not found")
+		if err != nil {
+			return c.SendStatus(400)
+		}
+
+		user := User{}
+		
+		err = collection.FindOne(ctx, filter).Decode(&user)
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body["password"].(string)))
+		if err != nil {
+			return c.SendStatus(403)
+		}
+		
+		return c.JSON(user.Token)
+}
+
+// @Summary Update user
+// @Description Update user with token
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param   token     body    string     true        "User token"
+// @Param   video_history  body    string     false        "Video history"
+// @Param   add_bookmark   body    string     false        "Add bookmark"
+// @Param   delete_bookmark   body    string     false        "Delete bookmark"
+// @Success 200 {object} string
+// @Failure 400 {object} string "User not found"
+// @Failure 500 {object} string "Internal server error"
+// @Router /users/update [post]
+func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("users")
+	body := jsonParser(c)
+
+	filter := bson.M{"token": body["token"]}
+	err := checkDocumentExists(collection, ctx, filter, "User not found")
+	if err != nil {
+		return c.SendStatus(400)
+	}
+
+	add := bson.M{
+		"$push": bson.M{},
+	}
+
+	del := bson.M{
+		"$pull": bson.M{},
+	}
+
+	if body["video_history"] != nil {
+		videoHistory := VideoHistory{
+			VideoID: body["video_history"].(string),
+			Date:    time.Now(),
+		}
+		add["$push"] = bson.M{"history": videoHistory}
+	}
+
+	if body["add_bookmark"] != nil {
+		add["$push"] = bson.M{"bookmark": body["add_bookmark"].(string)}
+	}
+
+	if body["delete_bookmark"] != nil {
+		del["$pull"] = bson.M{"bookmark": body["delete_bookmark"].(string)}
+	}
+
+	// if body["username"] != nil {
+	// 	update["$set"].(bson.M)["username"] = body["username"]
+	// }
+
+	// if body["password"] != nil {
+	// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body["password"].(string)), bcrypt.DefaultCost)
+	// 	if err != nil {
+	// 		return c.SendStatus(500)
+	// 	}
+	// 	update["$set"].(bson.M)["password"] = string(hashedPassword)
+	// }
+
+	_, err = collection.UpdateOne(ctx, filter, add)
+	if err != nil {
+	    return c.SendStatus(500)
+	}
+	
+	_, err = collection.UpdateOne(ctx, filter, del)
+	if err != nil {
+	    return c.SendStatus(500)
+	}
+
+	return c.SendStatus(200)
 }
 
 // @title SuperNova API
@@ -317,10 +478,15 @@ func main() {
 		return registerUser(c, ctx, db)
 	})
 
+	// history, bookmark 정보들 다 있음
 	app.Post("/user/my_info", func(c *fiber.Ctx) error {
 		return getMyInfo(c, ctx, db)
 	})
 	
+	app.Post("/user/update", func(c *fiber.Ctx) error {
+		return updateUser(c, ctx, db)
+	})
+
 	app.Post("/video/create", func(c *fiber.Ctx) error {
 		return createVideo(c, ctx, db)
 	})
@@ -333,294 +499,52 @@ func main() {
 		return getMyVideos(c, ctx, db)
 	})
 
-	app.Post("/video/update", func(c *fiber.Ctx) error {
-		collection := db.Collection("videos")
-		body := jsonParser(c)
-
-		filter := bson.M{
-			"_id": body["video_id"],
-			"author_id": body["my_id"],
-		}
-		err := checkDocumentExists(collection, ctx, filter, "Video not found")
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		update := bson.M{
-			"$set": bson.M{
-				"title": body["title"],
-				"content": body["content"],
-				"url": body["url"],
-				
-				"updated": primitive.Timestamp{T: uint32(time.Now().Unix())},
-			},
-		}
-
-		// if body["thumbnail_url"] != nil {
-		// 	update["$set"].(bson.M)["thumbnail_url"] = body["thumbnail_url"]
-		// }
-
-		rst, err := collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
-	})
-
 	app.Post("/video/delete", func(c *fiber.Ctx) error {
-		collection := db.Collection("videos")
-		body := jsonParser(c)
-
-		filter := bson.M{
-			"_id": body["video_id"],
-			"author_id": body["my_id"],
-		}
-
-		err := checkDocumentExists(collection, ctx, filter, "Video not found")
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		update := bson.M{
-			"$set": bson.M{
-				"deleted": primitive.Timestamp{T: uint32(time.Now().Unix())},
-			},
-		}
-		rst, err := collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-		return c.JSON(rst)
+		return deleteVideo(c, ctx, db)
 	})
 
 	app.Get("/video/info/:video_id", func(c *fiber.Ctx) error {
-		collection := db.Collection("videos")
-		rst, err := collection.Find(ctx, bson.M{"_id": c.Params("video_id")})
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		return c.JSON(rst)
-	})
-
-	app.Post("/feedback/create", func(c *fiber.Ctx) error {
-		collection := db.Collection("feedbacks")
-		body := jsonParser(c)
-
-		feedback := Feedback{
-			PostID: body["post_id"].(string),
-			UserID: body["author_id"].(string),
-			Created: time.Now(),
-			Updated: time.Now(),
-		}
-		rst, err := collection.InsertOne(ctx, feedback)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-		return c.JSON(rst)
-	})
-
-	app.Post("/feedback/update", func(c *fiber.Ctx) error {
-		collection := db.Collection("feedbacks")
-		body := jsonParser(c)
-
-		filter := bson.M{
-			"post_id": body["post_id"],
-			"author_id": body["my_id"],
-			"deleted": nil,
-		}
-
-		err := checkDocumentExists(collection, ctx, filter, "Feedback info not found")
-		checkErr(err)
-
-		update := bson.M{
-			"$set": bson.M{},
-		}
-
-		if body["content"] != nil {
-			update["$set"].(bson.M)["content"] = body["content"]
-		}
-
-		if body["like"] != nil {
-			update["$set"].(bson.M)["like"] = body["like"]
-		}
-
-		if body["bookmark"] != nil {
-			update["$set"].(bson.M)["bookmark"] = body["bookmark"]
-		}
-
-		update["$set"].(bson.M)["updated"] = primitive.Timestamp{T: uint32(time.Now().Unix())}
-
-		rst, err := collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
-	})
-
-	app.Post("/feedback/delete", func(c *fiber.Ctx) error {
-		collection := db.Collection("feedbacks")
-		body := jsonParser(c)
-		
-		filter := bson.M{
-			"_id": body["feedback_id"],
-			"post_id": body["post_id"],
-			"author_id": body["my_id"],
-			"deleted": nil,
-		}
-
-		err := checkDocumentExists(collection, ctx, filter, "Feedback info not found")
-		if err != nil {
-			return c.SendStatus(403)
-		}
-
-		update := bson.M{
-			"$set": bson.M{
-				"deleted": primitive.Timestamp{T: uint32(time.Now().Unix())},
-			},
-		}
-		rst, err := collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-		return c.JSON(rst)
-	})
-
-	app.Get("/feedback/info/:post_id", func(c *fiber.Ctx) error {
-		collection := db.Collection("feedbacks")
-		body := jsonParser(c)
-
-		filter := bson.M{
-			"post_id": body["post_id"],
-			"deleted": nil,
-		}
-
-		rst, err := collection.Find(ctx, filter)
-		if err != nil {
-			return c.SendStatus(400)
-		}
-		return c.JSON(rst)
-	})
-
-	app.Post("/history/create", func(c *fiber.Ctx) error {
-		collection := db.Collection("histories")
-		body := jsonParser(c)
-
-		history := History{
-			PostID: body["post_id"].(string),
-			UserID: body["user_id"].(string),
-			Updated: time.Now(),
-		}
-		rst, err := collection.InsertOne(ctx, history)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
-	})
-
-	app.Post("/history/update", func(c *fiber.Ctx) error {
-		collection := db.Collection("histories")
-		body := jsonParser(c)
-
-		filter := bson.M{
-			"post_id": body["post_id"],
-			"user_id": body["user_id"],
-		}
-
-		err := checkDocumentExists(collection, ctx, filter, "History not found")
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		update := bson.M{
-			"$set": bson.M{},
-		}
-
-		update["$set"].(bson.M)["updated"] = primitive.Timestamp{T: uint32(time.Now().Unix())}
-
-		if body["progress"] != nil {
-			update["$set"].(bson.M)["progress"] = body["progress"]
-		}
-
-
-		rst, err := collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
-	})
-
-	app.Post("/history/delete", func(c *fiber.Ctx) error {
-		collection := db.Collection("histories")
-		body := jsonParser(c)
-
-		filter := bson.M{
-			"post_id": body["post_id"],
-			"user_id": body["user_id"],
-		}
-
-		err := checkDocumentExists(collection, ctx, filter, "History not found")
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		update := bson.M{
-			"$set": bson.M{
-				"deleted": primitive.Timestamp{T: uint32(time.Now().Unix())},
-			},
-		}
-		rst, err := collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
-	})
-
-	app.Get("/history/user/:id", func(c *fiber.Ctx) error {
-		collection := db.Collection("histories")
-
-		filter := bson.M{
-			"_id": c.Params("id"),
-			"deleted": nil,
-		}
-
-		rst, err := collection.Find(ctx, filter)
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		return c.JSON(rst)
+		return getVideoInfo(c, ctx, db)
 	})
 
 	app.Post("/login", func(c *fiber.Ctx) error {
-		collection := db.Collection("users")
-		body := jsonParser(c)
-
-		filter := bson.M{"email": body["email"].(string)}
-		err := checkDocumentExists(collection, ctx, filter, "User not found")
-		if err != nil {
-			return c.SendStatus(400)
-		}
-
-		user := User{}
-		
-		err = collection.FindOne(ctx, filter).Decode(&user)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body["password"].(string)))
-		if err != nil {
-			return c.SendStatus(403)
-		}
-		
-		return c.JSON(user.Token)
+		return login(c, ctx, db)
 	})
+
+	// app.Post("/video/update", func(c *fiber.Ctx) error {
+	// 	collection := db.Collection("videos")
+	// 	body := jsonParser(c)
+
+	// 	filter := bson.M{
+	// 		"_id": body["video_id"],
+	// 		"author_id": body["my_id"],
+	// 	}
+	// 	err := checkDocumentExists(collection, ctx, filter, "Video not found")
+	// 	if err != nil {
+	// 		return c.SendStatus(400)
+	// 	}
+
+	// 	update := bson.M{
+	// 		"$set": bson.M{
+	// 			"title": body["title"],
+	// 			"content": body["content"],
+	// 			"url": body["url"],
+				
+	// 			"updated": primitive.Timestamp{T: uint32(time.Now().Unix())},
+	// 		},
+	// 	}
+
+	// 	// if body["thumbnail_url"] != nil {
+	// 	// 	update["$set"].(bson.M)["thumbnail_url"] = body["thumbnail_url"]
+	// 	// }
+
+	// 	rst, err := collection.UpdateOne(ctx, filter, update)
+	// 	if err != nil {
+	// 		return c.SendStatus(500)
+	// 	}
+
+	// 	return c.JSON(rst)
+	// })
 
 	app.Listen(":3000")
 }
