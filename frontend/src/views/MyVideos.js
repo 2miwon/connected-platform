@@ -44,12 +44,11 @@ const MyVideos = () => {
 
   const {user, setUser} = useUserStore();
 
-  const [videos, setVideos] = useState(null);
+  const [videos, setVideos] = useState([]);
   useEffect(() => {
-    const fetchVideos = async () => {
+    async function fetchVideos() {
       try {
           const response = await fetchMyVideos(user);
-          console.log("res",response)
           setVideos(response);
       } catch (error) {
         console.error('Error fetching videos:', error);
