@@ -331,6 +331,10 @@ func login(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 		body := jsonParser(c)
 
+		if body["email"] == nil || body["password"] == nil {
+			return c.SendStatus(400)
+		}
+
 		filter := bson.M{"email": body["email"].(string)}
 		err := checkDocumentExists(collection, ctx, filter, "User not found")
 		if err != nil {
