@@ -121,7 +121,6 @@ const Video = (prop) => {
           miniFeedbackHideDelay={2000}
           title="Sandstone VideoPlayer Test Video"
           titleHideDelay={4000}
-          muted
         >
           <source src={getVideoSource()} type="video/mp4" />
           <infoComponents>

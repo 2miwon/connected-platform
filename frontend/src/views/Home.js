@@ -156,7 +156,6 @@ const Home = () => {
             miniFeedbackHideDelay={2000}
             title={playingVideo.Title}
             titleHideDelay={4000}
-            muted
             onBack={handleStopVideo} // Add this line to handle the back button press
           >
             <source src={playingVideo.URL} type="video/mp4" />
