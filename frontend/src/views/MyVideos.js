@@ -5,298 +5,275 @@ import BodyText from '@enact/sandstone/BodyText';
 import Button from '@enact/sandstone/Button';
 import css from './Main.module.less';
 import $L from '@enact/i18n/$L';
-import {useConfigs} from '../hooks/configs';
-import {usePopup} from './HomeState';
-import {InputField} from '@enact/sandstone/Input';
-import {fetchAllVideos} from '../hooks/fetch';
-import { addVideo } from '../hooks/server';
+import { useConfigs } from '../hooks/configs';
+import { usePopup } from './HomeState';
+import { InputField } from '@enact/sandstone/Input';
 
-import {useVideoTime} from './HomeState';
-// Import react
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// For customization
 import Region from '@enact/sandstone/Region';
-import Dropdown from '@enact/sandstone/Dropdown';
 import RadioItem from '@enact/sandstone/RadioItem';
-
-// For media dispaly
 import MediaOverlay from '@enact/sandstone/MediaOverlay';
-
-
-// For user input
-import Input from '@enact/sandstone/Input';
-
-
+import VideoPlayer from '@enact/sandstone/VideoPlayer';
+import { MediaControls } from '@enact/sandstone/MediaPlayer';
 
 const MyVideos = () => {
-	const data = useConfigs();
-	const {isPopupOpen, handlePopupOpen, handlePopupClose} = usePopup();
+  const data = useConfigs();
+  const { isPopupOpen, handlePopupOpen, handlePopupClose } = usePopup();
   const { isPopupOpen: isDeleteEditPopupOpen, handlePopupOpen: handleDeleteEditPopupOpen, handlePopupClose: handleDeleteEditPopupClose } = usePopup();
 
-    const [newVideoTitle, setNewVideoTitle] = useState('');
-    const [newVideoSrc, setNewVideoSrc] = useState('');
-    const [editVideoTitle, setEditVideoTitle] = useState('');
-    const [editVideoSrc, setEditVideoSrc] = useState('');
-    const [selectedVideo, setSelectedVideo] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
-    
+  const [newVideoTitle, setNewVideoTitle] = useState('');
+  const [newVideoSrc, setNewVideoSrc] = useState('');
+  const [newVideoContent, setNewVideoContent] = useState(''); // New state for content
+  const [newVideoThumbnail, setNewVideoThumbnail] = useState(''); // New state for thumbnail
+  const [editVideoTitle, setEditVideoTitle] = useState('');
+  const [editVideoSrc, setEditVideoSrc] = useState('');
+  const [editVideoContent, setEditVideoContent] = useState(''); // New state for content
+  const [editVideoThumbnail, setEditVideoThumbnail] = useState(''); // New state for thumbnail
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
-	const [videos, setVideos] = useState([
-        { text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4' },
-        { text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4' },
-        { text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4' },
-        { text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4' },
-        { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4' }
-      ]);
+  const [videos, setVideos] = useState([
+    { text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4', content: 'VR Headset content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4', content: 'Blood Sample content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4', content: 'Tattoo content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4', content: 'Clinic content', thumbnail: 'https://example.com/thumbnail.jpg' }
+  ]);
 
-      const handleAddVideo = async () => {
-        const user = { id: 1 }; // Replace this with actual user data
-        try {
-          const response = await addVideo(newVideoTitle, 'this is contents', newVideoSrc, user);
-          if (response) {
-            setVideos([...videos, { text: newVideoTitle, src: newVideoSrc }]);
-            setNewVideoTitle('');
-            setNewVideoSrc('');
-            handlePopupClose();
-          }
-        } catch (error) {
-          console.error('Error adding video:', error);
-        }
-      };
+  const [playingVideo, setPlayingVideo] = useState(null); // State to track the playing video
 
-    const handleDeleteVideo = () => {
-      if (selectedVideo !== null) {
-        setVideos(videos.filter((_, index) => index !== selectedVideo));
-        setSelectedVideo(null);
-        handleDeleteEditPopupClose();
-      }
+  const handleAddVideo = async () => {
+    const newVideo = {
+      title: newVideoTitle,
+      content: newVideoContent,
+      url: newVideoSrc,
+      author_id: 'AuthorID', // Replace with actual author ID if available
+      thumbnail_url: newVideoThumbnail
     };
 
-    const handleEditVideo = () => {
-      if (selectedVideo !== null) {
-        const updatedVideos = videos.map((video, index) =>
-          index === selectedVideo ? { text: editVideoTitle, src: editVideoSrc } : video
-        );
-        setVideos(updatedVideos);
-        setSelectedVideo(null);
-        setEditVideoTitle('');
-        setEditVideoSrc('');
-        setIsEditing(false);
-        handleDeleteEditPopupClose();
+    try {
+      const response = await fetch('http://3.36.212.250:3000/video/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newVideo)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setVideos([...videos, { text: newVideoTitle, src: newVideoSrc, content: newVideoContent, thumbnail: newVideoThumbnail }]);
+        setNewVideoTitle('');
+        setNewVideoSrc('');
+        setNewVideoContent('');
+        setNewVideoThumbnail('');
+        handlePopupClose();
+      } else {
+        console.error('Error adding video:', response.statusText);
       }
-    };
-  
-    const openEditMode = () => {
-      if (selectedVideo !== null) {
-        const video = videos[selectedVideo];
-        setEditVideoTitle(video.text);
-        setEditVideoSrc(video.src);
-        setIsEditing(true);
-      }
-    };
+    } catch (error) {
+      console.error('Error adding video:', error);
+    }
+  };
 
-    const handleMouseEnter = (index) => {
-      const videoElement = document.getElementById(`video-${index}`);
-      if (videoElement) {
-        videoElement.play();
-      }
-    };
-  
-    const handleMouseLeave = (index) => {
-      const videoElement = document.getElementById(`video-${index}`);
-      if (videoElement) {
-        videoElement.pause();
-        videoElement.currentTime = 0; // Reset the video to the beginning
-      }
-    };
+  const handleDeleteVideo = () => {
+    if (selectedVideo !== null) {
+      setVideos(videos.filter((_, index) => index !== selectedVideo));
+      setSelectedVideo(null);
+      handleDeleteEditPopupClose();
+    }
+  };
 
-	
-  // 내 영상
-  // 내 영상 업로드 (link)
-  // 내 영상 삭제
-  // 내 영상 수정 <- 이건 안 할듯.
-	return (
-		<>
-			
-			<div className={css.searchBar}>
-			<Region title="My Videos" />
-			
+  const handleEditVideo = () => {
+    if (selectedVideo !== null) {
+      const updatedVideos = videos.map((video, index) =>
+        index === selectedVideo ? { text: editVideoTitle, src: editVideoSrc, content: editVideoContent, thumbnail: editVideoThumbnail } : video
+      );
+      setVideos(updatedVideos);
+      setSelectedVideo(null);
+      setEditVideoTitle('');
+      setEditVideoSrc('');
+      setEditVideoContent('');
+      setEditVideoThumbnail('');
+      setIsEditing(false);
+      handleDeleteEditPopupClose();
+    }
+  };
 
-			</div>
-        <div className={css.videoGrid}>
+  const openEditMode = () => {
+    if (selectedVideo !== null) {
+      const video = videos[selectedVideo];
+      setEditVideoTitle(video.text);
+      setEditVideoSrc(video.src);
+      setEditVideoContent(video.content);
+      setEditVideoThumbnail(video.thumbnail);
+      setIsEditing(true);
+    }
+  };
 
-        
-        {videos.map((video, index) => (
-					<div
-						key={index}
-						onMouseEnter={() => handleMouseEnter(index)}
-						onMouseLeave={() => handleMouseLeave(index)}
-					>
-						<MediaOverlay title={video.text} source={video.src}>
-							<video id={`video-${index}`} src={video.src} width="100%" height="auto" />
-						</MediaOverlay>
-					</div>
-				))}
-          </div>
+  const handlePlayVideo = (video) => {
+    setPlayingVideo(video);
+  };
 
-			<div>
-      <Button onClick={handlePopupOpen} size="small" className={css.buttonCell}>
-        {$L('Add Video')}
-      </Button>
+  const handleStopVideo = () => {
+    setPlayingVideo(null);
+  };
 
-      <Button onClick={handleDeleteEditPopupOpen} size="small" className={css.buttonCell}>
-          {$L('Delete/Edit Video')}
-        </Button>
-      
-      <Alert type="overlay" open={isPopupOpen} onClose={handlePopupClose}>
-        <span>{$L('Enter name and link.')}</span>
+  return (
+    <>
+      <div className={css.searchBar}>
+        <Region title="My Videos" />
         <div>
-          <InputField
-            placeholder={$L('Video Title')}
-            value={newVideoTitle}
-            onChange={({ value }) => setNewVideoTitle(value)}
-          />
-          <InputField
-            placeholder={$L('Video Link')}
-            value={newVideoSrc}
-            onChange={({ value }) => setNewVideoSrc(value)}
-          />
-        </div>
-        <div>
-          <Button
-            size="small"
-            className={css.buttonCell}
-            onClick={handleAddVideo}
-          >
+          <Button onClick={handlePopupOpen} size="small" className={css.smallerbuttonCell}>
             {$L('Add Video')}
           </Button>
-          <Button
-            size="small"
-            className={css.buttonCell}
-            onClick={handlePopupClose}
-          >
-            {$L('Cancel')}
+
+          <Button onClick={handleDeleteEditPopupOpen} size="small" className={css.smallerbuttonCell}>
+            {$L('Delete/Edit Video')}
           </Button>
-        </div>
-      </Alert>
 
-
-      <Alert type="overlay" open={isDeleteEditPopupOpen} onClose={handleDeleteEditPopupClose}>
-        {!isEditing ? (
-          <>
-            <span>{$L('Select a video to delete or edit.')}</span>
-            <div>
-              {videos.map((video, index) => (
-                <RadioItem
-                  key={index}
-                  selected={selectedVideo === index}
-                  onClick={() => setSelectedVideo(index)}
-                >
-                  {video.text}
-                </RadioItem>
-              ))}
-            </div>
-            <div>
-              <Button
-                size="small"
-                className={css.buttonCell}
-                onClick={handleDeleteVideo}
-              >
-                {$L('Delete')}
-              </Button>
-              <Button
-                size="small"
-                className={css.buttonCell}
-                onClick={openEditMode}
-              >
-                {$L('Edit')}
-              </Button>
-              <Button
-                size="small"
-                className={css.buttonCell}
-                onClick={handleDeleteEditPopupClose}
-              >
-                {$L('Cancel')}
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            <span>{$L('Edit name and link.')}</span>
+          <Alert type="overlay" open={isPopupOpen} onClose={handlePopupClose}>
+            <span>{$L('Enter name, link, content, and thumbnail URL.')}</span>
             <div>
               <InputField
                 placeholder={$L('Video Title')}
-                value={editVideoTitle}
-                onChange={({ value }) => setEditVideoTitle(value)}
+                value={newVideoTitle}
+                onChange={({ value }) => setNewVideoTitle(value)}
               />
               <InputField
                 placeholder={$L('Video Link')}
-                value={editVideoSrc}
-                onChange={({ value }) => setEditVideoSrc(value)}
+                value={newVideoSrc}
+                onChange={({ value }) => setNewVideoSrc(value)}
+              />
+              <InputField
+                placeholder={$L('Video Content')}
+                value={newVideoContent}
+                onChange={({ value }) => setNewVideoContent(value)}
+              />
+              <InputField
+                placeholder={$L('Thumbnail URL')}
+                value={newVideoThumbnail}
+                onChange={({ value }) => setNewVideoThumbnail(value)}
               />
             </div>
             <div>
-              <Button
-                size="small"
-                className={css.buttonCell}
-                onClick={handleEditVideo}
-              >
-                {$L('Save')}
+              <Button size="small" className={css.buttonCell} onClick={handleAddVideo}>
+                {$L('Add Video')}
               </Button>
-              <Button
-                size="small"
-                className={css.buttonCell}
-                onClick={() => setIsEditing(false)}
-              >
+              <Button size="small" className={css.buttonCell} onClick={handlePopupClose}>
                 {$L('Cancel')}
               </Button>
             </div>
-          </>
-        )}
-      </Alert>
+          </Alert>
 
-    </div>
+          <Alert type="overlay" open={isDeleteEditPopupOpen} onClose={handleDeleteEditPopupClose}>
+            {!isEditing ? (
+              <>
+                <span>{$L('Select a video to delete or edit.')}</span>
+                <div>
+                  {videos.map((video, index) => (
+                    <RadioItem
+                      key={index}
+                      selected={selectedVideo === index}
+                      onClick={() => setSelectedVideo(index)}
+                    >
+                      {video.text}
+                    </RadioItem>
+                  ))}
+                </div>
+                <div>
+                  <Button size="small" className={css.buttonCell} onClick={handleDeleteVideo}>
+                    {$L('Delete')}
+                  </Button>
+                  <Button size="small" className={css.buttonCell} onClick={openEditMode}>
+                    {$L('Edit')}
+                  </Button>
+                  <Button size="small" className={css.buttonCell} onClick={handleDeleteEditPopupClose}>
+                    {$L('Cancel')}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span>{$L('Edit name, link, content, and thumbnail URL.')}</span>
+                <div>
+                  <InputField
+                    placeholder={$L('Video Title')}
+                    value={editVideoTitle}
+                    onChange={({ value }) => setEditVideoTitle(value)}
+                  />
+                  <InputField
+                    placeholder={$L('Video Link')}
+                    value={editVideoSrc}
+                    onChange={({ value }) => setEditVideoSrc(value)}
+                  />
+                  <InputField
+                    placeholder={$L('Video Content')}
+                    value={editVideoContent}
+                    onChange={({ value }) => setEditVideoContent(value)}
+                  />
+                  <InputField
+                    placeholder={$L('Thumbnail URL')}
+                    value={editVideoThumbnail}
+                    onChange={({ value }) => setEditVideoThumbnail(value)}
+                  />
+                </div>
+                <div>
+                  <Button size="small" className={css.buttonCell} onClick={handleEditVideo}>
+                    {$L('Save')}
+                  </Button>
+                  <Button size="small" className={css.buttonCell} onClick={() => setIsEditing(false)}>
+                    {$L('Cancel')}
+                  </Button>
+                </div>
+              </>
+            )}
+          </Alert>
+        </div>
+      </div>
 
-		</>
+      <div className={css.mediaContainer}>
+        {videos.map((video, index) => (
+          <div key={index} onClick={() => handlePlayVideo(video)}>
+            <MediaOverlay title={video.text} source={video.src}>
+              <video id={`video-${index}`} src={video.src} width="100%" height="auto" />
+            </MediaOverlay>
+          </div>
+        ))}
+      </div>
 
-	);
+      {playingVideo && (
+        <div className={css.fullscreenVideo}>
+          <VideoPlayer
+            autoCloseTimeout={1000}
+            backButtonAriaLabel="go to previous"
+            feedbackHideDelay={3000}
+            initialJumpDelay={400}
+            jumpDelay={200}
+            loop
+            miniFeedbackHideDelay={2000}
+            title={playingVideo.text}
+            titleHideDelay={4000}
+            muted
+            onBack={handleStopVideo} // Add this line to handle the back button press
+          >
+            <source src={playingVideo.src} type="video/mp4" />
+            <infoComponents>
+              {playingVideo.content}
+            </infoComponents>
+            <MediaControls
+              jumpBackwardIcon="jumpbackward"
+              jumpForwardIcon="jumpforward"
+              pauseIcon="pause"
+              playIcon="play"
+            >
+            </MediaControls>
+          </VideoPlayer>
+        </div>
+      )}
+    </>
+  );
 };
 
-
 export default MyVideos;
-
-//<BodyText>{`TV Info : ${JSON.stringify(data)}`}</BodyText>
-
-/*
-	const MediaOverlayWithDetails = () => 
-	{
-		const [videoTime, setVideoTime] = useState('00:00');
-		const [randomTitle,setRandomTitle] = useState('Random Title');
-		const videoRef = useRef(null);
-
-		const formatTime = (seconds) => {
-			const minutes = Math.floor(seconds / 60);
-			const secs = Math.floor(seconds % 60);
-			return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-		};
-
-		useEffect(() => {
-			const videoElement = videoRef.current;
-			const updateVideoTime = () => {
-				setVideoTime(formatTime(videoElement.currentTime));
-
-			};
-			if (videoElement) {
-				videoElement.addEventListener('timeupdate',updateVideoTime);
-			}
-
-			return () => {
-				if (videoElement) {
-					videoElement.removeEventListener('timeupdate',updateVideoTime);
-				}
-			};
-
-		}, []);
-
-*/
