@@ -295,20 +295,22 @@ func deleteVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 // @Summary Get my videos
 // @Description Get my videos with author_id
 // @Tags videos
-// @Accept  json
 // @Produce  json
-// @Param   id     body    string     true        "Author ID"
+// @Param   id     path    string     true        "Author ID"
 // @Success 200 {object} Video
-// @Failure 500 {object} string "Internal server error"
+// @Failure 400 {object} string "Internal server error"
 // @Router /videos/user/{id} [get]
+
 func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 
-	if c.Params("id") == "" {
+	id := c.Params("id")
+
+	if id == "" {
 		return c.SendStatus(400)
 	}
 
-	rst, err := collection.Find(ctx, bson.M{"author_id": c.Params("id")})
+	rst, err := collection.Find(ctx, bson.M{"author_id": id})
 	if err != nil {
 		return c.SendStatus(500)
 	}
