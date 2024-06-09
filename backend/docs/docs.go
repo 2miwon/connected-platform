@@ -84,47 +84,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/my_info": {
-            "post": {
-                "description": "Get user info with token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get user info",
-                "parameters": [
-                    {
-                        "description": "User token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.User"
-                        }
-                    },
-                    "403": {
-                        "description": "User not found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/register": {
+        "/register": {
             "post": {
                 "description": "Register a new user with email, username and password",
                 "consumes": [
@@ -181,6 +141,46 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/my_info": {
+            "post": {
+                "description": "Get user info with token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user info",
+                "parameters": [
+                    {
+                        "description": "User token",
+                        "name": "token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.User"
+                        }
+                    },
+                    "403": {
+                        "description": "User not found",
                         "schema": {
                             "type": "string"
                         }
@@ -245,6 +245,61 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "User not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/video/comment": {
+            "post": {
+                "description": "Add comment to video",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "videos"
+                ],
+                "summary": "Add comment",
+                "parameters": [
+                    {
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Add comment",
+                        "name": "add_comment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Video not found",
                         "schema": {
                             "type": "string"
                         }

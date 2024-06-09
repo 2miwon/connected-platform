@@ -105,33 +105,7 @@ paths:
       summary: Login
       tags:
       - users
-  /user/my_info:
-    post:
-      consumes:
-      - application/json
-      description: Get user info with token
-      parameters:
-      - description: User token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/main.User'
-        "403":
-          description: User not found
-          schema:
-            type: string
-      summary: Get user info
-      tags:
-      - users
-  /user/register:
+  /register:
     post:
       consumes:
       - application/json
@@ -171,6 +145,32 @@ paths:
           schema:
             type: string
       summary: Register a new user
+      tags:
+      - users
+  /user/my_info:
+    post:
+      consumes:
+      - application/json
+      description: Get user info with token
+      parameters:
+      - description: User token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.User'
+        "403":
+          description: User not found
+          schema:
+            type: string
+      summary: Get user info
       tags:
       - users
   /user/update:
@@ -218,6 +218,42 @@ paths:
       summary: Update user
       tags:
       - users
+  /video/comment:
+    post:
+      consumes:
+      - application/json
+      description: Add comment to video
+      parameters:
+      - description: Video ID
+        in: body
+        name: video_id
+        required: true
+        schema:
+          type: string
+      - description: Add comment
+        in: body
+        name: add_comment
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Video not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Add comment
+      tags:
+      - videos
   /videos/all:
     get:
       description: Get all videos
