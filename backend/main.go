@@ -123,6 +123,7 @@ func jsonParser(c *fiber.Ctx) map[string]interface{} {
 // @Accept  json
 // @Produce  json
 // @Param   email     body    string     true        "Email"
+// @Param   username  body    string     true        "Username"
 // @Param   password  body    string     true        "Password"
 // @Success 200 {object} User
 // @Failure 400 {object} string "User already exists"
@@ -132,7 +133,7 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 	body := jsonParser(c)
 
-	if body["email"] == nil || body["password"] == nil {
+	if body["email"] == nil || body["password"] == nil || body["username"] == nil {
 		return c.SendStatus(400)
 	}
 
@@ -153,7 +154,7 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	}
 	user := User{
 		Email: body["email"].(string),
-		Username: body["email"].(string),
+		Username: body["username"].(string),
 		Password: string(hashedPassword),
 		Created: time.Now(),
 		Token: string(token),

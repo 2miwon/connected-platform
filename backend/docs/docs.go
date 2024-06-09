@@ -148,6 +148,15 @@ const docTemplate = `{
                         }
                     },
                     {
+                        "description": "Username",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "description": "Password",
                         "name": "password",
                         "in": "body",

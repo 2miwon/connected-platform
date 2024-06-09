@@ -143,6 +143,12 @@ paths:
         required: true
         schema:
           type: string
+      - description: Username
+        in: body
+        name: username
+        required: true
+        schema:
+          type: string
       - description: Password
         in: body
         name: password
