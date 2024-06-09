@@ -85,7 +85,7 @@ We decided to develop on (1) Media Web Application for this '24 Spring Project.
 
 ---
 
-![Untitled](%E1%84%8F%E1%85%A5%E1%84%82%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B5%E1%84%83%E1%85%B3%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A2%E1%86%BA%E1%84%91%E1%85%A9%E1%86%B7%20%E1%84%90%E1%85%B5%E1%86%B7%E1%84%80%E1%85%AA%E1%84%8C%E1%85%A6%20README%205462cdc79dbd42fcafbb58e84df143ee/Untitled.png)
+![Untitled](images/Untitled.png)
 
 ### Frontend - Enact.js WebOS application
 
@@ -138,7 +138,7 @@ enact의 어떤 기능들을 사용하였고 enact의 장점들을 소개
     
     1. **Fiber는 높은 Requests/Second (RPS) 지표를 보여줍니다.**
         
-        ![Untitled](%E1%84%8F%E1%85%A5%E1%84%82%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B5%E1%84%83%E1%85%B3%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A2%E1%86%BA%E1%84%91%E1%85%A9%E1%86%B7%20%E1%84%90%E1%85%B5%E1%86%B7%E1%84%80%E1%85%AA%E1%84%8C%E1%85%A6%20README%205462cdc79dbd42fcafbb58e84df143ee/Untitled%201.png)
+        ![Untitled](images/Untitled%201.png)
         
         - 많은 동시 접속자의 요청을 원활히 처리할 수 있습니다.
         - 대규모 라이브 스트리밍 시청자 트래픽을 수용할 수 있습니다.
@@ -146,7 +146,7 @@ enact의 어떤 기능들을 사용하였고 enact의 장점들을 소개
         - Fiber는 Go 언어의 고성능과 병렬 처리 능력을 극대화하여 대용량 동영상 스트리밍에 적합합니다.
     2. **Fiber은 낮은 Latency (지연 시간) 지표를 보여줍니다.**
         
-        ![Untitled](%E1%84%8F%E1%85%A5%E1%84%82%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B5%E1%84%83%E1%85%B3%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A2%E1%86%BA%E1%84%91%E1%85%A9%E1%86%B7%20%E1%84%90%E1%85%B5%E1%86%B7%E1%84%80%E1%85%AA%E1%84%8C%E1%85%A6%20README%205462cdc79dbd42fcafbb58e84df143ee/Untitled%202.png)
+        ![Untitled](images/Untitled%202.png)
         
         - P99.999 Latency는 100,000번중에 1번을 제외하고 모든 경우에서 해당 ms 미만의 Latency가 보장될수 있다는 지표입니다.
         - 높은 백분위의 지연 시간이 짧을 수록 대부분의 사용자에게 원활한 UX를 보장합니다.
@@ -155,7 +155,7 @@ enact의 어떤 기능들을 사용하였고 enact의 장점들을 소개
         - Fiber의 미들웨어 구조를 활용하여 네트워크 상태 모니터링, 품질 조절 기능을 유연하게 구현할 수 있습니다.
     3. **Fiber은 낮은 Average Latency (평균 지연 시간) 지표를 보여줍니다.**
         
-        ![Untitled](%E1%84%8F%E1%85%A5%E1%84%82%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B5%E1%84%83%E1%85%B3%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A2%E1%86%BA%E1%84%91%E1%85%A9%E1%86%B7%20%E1%84%90%E1%85%B5%E1%86%B7%E1%84%80%E1%85%AA%E1%84%8C%E1%85%A6%20README%205462cdc79dbd42fcafbb58e84df143ee/Untitled%203.png)
+        ![Untitled](images/Untitled%203.png)
         
         - 전반적으로 매끄러운 스트리밍 경험을 제공할 수 있습니다.
         - **대기 시간이 짧아 사용자 이탈률을 낮출 수 있습니다.**
@@ -163,9 +163,9 @@ enact의 어떤 기능들을 사용하였고 enact의 장점들을 소개
         - Fiber에서는 사용자의 네트워크 환경에 맞춰 동영상 품질을 동적으로 조절할 수 있는 기능을 빠르게 구현할 수 있습니다.
     4. **Fiber은  안정적인 Minimum/Maximum Latency (최소/최대 지연) 지표를 보여줍니다.**
         
-        ![Untitled](%E1%84%8F%E1%85%A5%E1%84%82%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B5%E1%84%83%E1%85%B3%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A2%E1%86%BA%E1%84%91%E1%85%A9%E1%86%B7%20%E1%84%90%E1%85%B5%E1%86%B7%E1%84%80%E1%85%AA%E1%84%8C%E1%85%A6%20README%205462cdc79dbd42fcafbb58e84df143ee/Untitled%204.png)
+        ![Untitled](images/Untitled%204.png)
         
-        ![Untitled](%E1%84%8F%E1%85%A5%E1%84%82%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B5%E1%84%83%E1%85%B3%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A2%E1%86%BA%E1%84%91%E1%85%A9%E1%86%B7%20%E1%84%90%E1%85%B5%E1%86%B7%E1%84%80%E1%85%AA%E1%84%8C%E1%85%A6%20README%205462cdc79dbd42fcafbb58e84df143ee/Untitled%205.png)
+        ![Untitled](images/Untitled%205.png)
         
         - 동영상 데이터는 연속적으로 전송되어야 하므로 네트워크 연결이 안정적이어야 합니다.
         - **Maximum Latency가 낮으므로 일정한 품질의 스트리밍 서비스를 제공할 수 있습니다.**
