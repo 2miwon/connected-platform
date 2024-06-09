@@ -42,7 +42,6 @@ type Video struct {
 	AuthorID string `bson:"author_id"`
 	Created time.Time `bson:"created"`
 	Deleted *time.Time `bson:"deleted"`
-	Comments []string `bson:"comments"`
 }
 
 type VideoHistory struct {
@@ -306,7 +305,7 @@ func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 	body := jsonParser(c)
 
-	if body["id"] == nil {
+	if c.Params("id") == "" {
 		return c.SendStatus(400)
 	}
 
