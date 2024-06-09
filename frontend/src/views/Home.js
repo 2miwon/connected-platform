@@ -8,7 +8,7 @@ import $L from '@enact/i18n/$L';
 import {useConfigs} from '../hooks/configs';
 import {usePopup} from './HomeState';
 import {InputField} from '@enact/sandstone/Input';
-import {fetchAllVideos} from '../hooks/fetch';
+import {fetchAllVideos} from '../hooks/server';
 
 
 import {useVideoTime} from './HomeState';

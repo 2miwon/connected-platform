@@ -1,0 +1,94 @@
+import axios from "axios";
+
+const API_URL = "http://3.36.212.250:3000";
+
+export const debug = async () => {
+    const response = await axios.get(`${API_URL}/debug`);
+    return response.data;
+}
+
+export const ping = async () => {
+  const response = await axios.get(`${API_URL}/`);
+  if (response.status === 200) {
+    return true;
+  }
+  return false;
+}
+
+export const fetchAllVideos = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/video/all`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+}
+
+export const getMyInfo = async (token) => {
+  try {
+    const response = await axios.post(`${API_URL}/my_info/`, {
+      token: token
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const login = async (email, password) => {
+  try {
+    const response = await axios.post(`${API_URL}/login`, {
+      email: email,
+      password: password
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const register = async (email, username, password) => {
+  try {
+    const response = await axios.post(`${API_URL}/register`, {
+      email: email,
+      username: username,
+      password: password
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const fetchMyVideos = async (user) => {
+  try {
+    const response = await axios.get(`${API_URL}/video/user/${user.id}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const addVideo = async (title, content, url, user) => {
+  try {  
+    const response = await axios.post(`${API_URL}/video/create`, {
+      title: title,
+      content: content,
+      url: url,
+      author_id: user.id
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const deleteVideo = async (video_id) => {
+  try {
+    const response = await axios.post(`${API_URL}/video/delete/`, {
+      video_id: video_id
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}

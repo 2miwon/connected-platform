@@ -9,7 +9,7 @@ import {useConfigs} from '../hooks/configs';
 import {usePopup} from './HomeState';
 import {InputField} from '@enact/sandstone/Input';
 import {fetchAllVideos} from '../hooks/fetch';
-import { addVideo } from '../hooks/fetch';
+import { addVideo } from '../hooks/server';
 
 import {useVideoTime} from './HomeState';
 // Import react

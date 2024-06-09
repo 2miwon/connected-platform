@@ -473,10 +473,6 @@ func main() {
 		checkErr(err)
 		return c.JSON(rst)
 	})
-	
-	app.Post("/user/create", func(c *fiber.Ctx) error {
-		return registerUser(c, ctx, db)
-	})
 
 	// history, bookmark 정보들 다 있음
 	app.Post("/user/my_info", func(c *fiber.Ctx) error {
@@ -509,6 +505,10 @@ func main() {
 
 	app.Post("/login", func(c *fiber.Ctx) error {
 		return login(c, ctx, db)
+	})
+
+	app.Post("/register", func(c *fiber.Ctx) error {
+		return registerUser(c, ctx, db)
 	})
 
 	// app.Post("/video/update", func(c *fiber.Ctx) error {
