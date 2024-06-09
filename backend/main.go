@@ -413,16 +413,14 @@ func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	}
 
 	if body["video_history"] != nil {
-
-	
-		remove := bson.M{"$pull": bson.M{"history": bson.M{"VideoID": body["video_history"]}}}
-    	res, err := collection.UpdateOne(context.TODO(), filter, remove)
-    	if err != nil {
-    	    log.Fatal(err)
-    	}
-
-		if res.MatchedCount == 0 {
-			log.Println("No document matched the filter")
+		rst := User{}
+		err := collection.FindOne(ctx, bson.M{"history": bson.M{"VideoID": body["video_history"]}}).Decode(&rst)
+		if err != nil {
+			remove := bson.M{"$pull": bson.M{"history": bson.M{"VideoID": body["video_history"]}}}
+    		//_, _ := 
+			collection.UpdateOne(context.TODO(), filter, remove)
+    		// if err != nil {
+    		// } 
 		}
 
 		videoHistory := VideoHistory{
