@@ -49,12 +49,14 @@ const MyVideos = () => {
     async function fetchVideos() {
       try {
           const response = await fetchMyVideos(user);
+          console.log(response)
           setVideos(response);
       } catch (error) {
         console.error('Error fetching videos:', error);
       }
     };
     fetchVideos();
+    console.log(videos);
   }, [user]);
 
   const [playingVideo, setPlayingVideo] = useState(null); // State to track the playing video
@@ -121,9 +123,9 @@ const MyVideos = () => {
   const openEditMode = () => {
     if (selectedVideo !== null) {
       const video = videos[selectedVideo];
-      setEditVideoTitle(video.text);
-      setEditVideoSrc(video.src);
-      setEditVideoContent(video.content);
+      setEditVideoTitle(video.Title);
+      setEditVideoSrc(video.URL);
+      setEditVideoContent(video.Content);
       setIsEditing(true);
     }
   };
@@ -220,7 +222,7 @@ const MyVideos = () => {
                       selected={selectedVideo === index}
                       onClick={() => setSelectedVideo(index)}
                     >
-                      {video.text}
+                      {video.comment}
                     </RadioItem>
                   ))}
                 </div>
@@ -274,8 +276,8 @@ const MyVideos = () => {
       <div className={css.mediaContainer}>
         {videos?.map((video, index) => (
           <div key={index} onClick={() => handlePlayVideo(video)}>
-            <MediaOverlay title={video.text} source={video.src}>
-              <video id={`video-${index}`} src={video.src} width="100%" height="auto" />
+            <MediaOverlay title={video.Comment} source={video.URL}>
+              <video id={`video-${index}`} src={video.URL} width="100%" height="auto" />
             </MediaOverlay>
           </div>
         ))}
@@ -291,14 +293,14 @@ const MyVideos = () => {
             jumpDelay={200}
             loop
             miniFeedbackHideDelay={2000}
-            title={playingVideo.text}
+            title={playingVideo.Title}
             titleHideDelay={4000}
             muted
             onBack={handleStopVideo} // Add this line to handle the back button press
           >
-            <source src={playingVideo.src} type="video/mp4" />
+            <source src={playingVideo.URL} type="video/mp4" />
             <infoComponents>
-              {playingVideo.content}
+              {playingVideo.Content}
             </infoComponents>
             <MediaControls
               jumpBackwardIcon="jumpbackward"
