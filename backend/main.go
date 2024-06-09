@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -172,14 +173,14 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 func getMyInfo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 
-		body := jsonParser(c)
-		var rst bson.M
-		err := collection.FindOne(ctx, bson.M{"token": body["token"].(string)}).Decode(&rst)
-		if err != nil {
-			return c.SendStatus(403)
-		}
+	body := jsonParser(c)
+	var rst bson.M
+	err := collection.FindOne(ctx, bson.M{"token": body["token"].(string)}).Decode(&rst)
+	if err != nil {
+		return c.SendStatus(403)
+	}
 
-		return c.JSON(rst)
+	return c.JSON(rst)
 }
 
 // @Summary Create a new video
@@ -476,38 +477,65 @@ func main() {
 
 	// history, bookmark 정보들 다 있음
 	app.Post("/user/my_info", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return getMyInfo(c, ctx, db)
 	})
 	
 	app.Post("/user/update", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return updateUser(c, ctx, db)
 	})
 
 	app.Post("/video/create", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return createVideo(c, ctx, db)
 	})
 
 	app.Get("/video/all", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return getAllVideos(c, ctx, db)
 	})
 
 	app.Get("/video/user/:id", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return getMyVideos(c, ctx, db)
 	})
 
 	app.Post("/video/delete", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return deleteVideo(c, ctx, db)
 	})
 
 	app.Get("/video/info/:video_id", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return getVideoInfo(c, ctx, db)
 	})
 
 	app.Post("/login", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return login(c, ctx, db)
 	})
 
 	app.Post("/register", func(c *fiber.Ctx) error {
+		if c == nil {
+			return errors.New("Context is nil")
+		}
 		return registerUser(c, ctx, db)
 	})
 
