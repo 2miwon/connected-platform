@@ -5,7 +5,10 @@ import Popup from '@enact/sandstone/Popup';
 import TabLayout, { Tab } from '@enact/sandstone/TabLayout';
 import Region from '@enact/sandstone/Region';
 import MediaOverlay from '@enact/sandstone/MediaOverlay';
+import axios from 'axios';
 import css from './Main.module.less';
+
+const API_URL = 'http://3.36.212.250:3000'; // Your API URL
 
 const MyPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,19 +25,26 @@ const MyPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [sex, setSex] = useState('');
-  const [age, setAge] = useState('');
 
-  const login = (email, password) => {
-    const user = users.find(user => user.email === email && user.password === password);
-    if (user) {
-      setCurrentUser(user);
-      setIsLoggedIn(true);
-      fetchBookmarks(user.id);
-      fetchFinishedVideos(user.id);
-    } else {
+  const login = async (email, password) => {
+    try {
+      const userData = await axios.post(`${API_URL}/login`, {
+        email: email,
+        password: password
+        
+      });
 
-      console.log('Invalid email or password');
+      if (userData) {
+        setCurrentUser(userData.data);
+        setIsLoggedIn(true);
+        fetchBookmarks(userData.data.id);
+        fetchFinishedVideos(userData.data.id);
+        setPopupOpen(false); // Close popup after successful login
+      } else {
+        console.log('Invalid email or password');
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
     }
   };
 
@@ -63,22 +73,32 @@ const MyPage = () => {
     setFinishedVideos(mockFinishedVideos);
   };
 
-  const handleCreateAccount = () => {
-    const newUser = {
-      id: users.length + 1,
-      name,
-      sex,
-      age: parseInt(age),
-      email,
-      password
-    };
-    setUsers([...users, newUser]);
-    setEmail('');
-    setPassword('');
-    setName('');
-    setSex('');
-    setAge('');
-    setPopupOpen(false);
+  const register = async (email, username, password) => {
+    try {
+      const response = await axios.post(`${API_URL}/register`, {
+        email,
+        username,
+        password
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCreateAccount = async () => {
+    try {
+      const newUser = await register(email, name, password);
+      if (newUser) {
+        setUsers([...users, { id: newUser.id, name, email, password }]);
+        setEmail('');
+        setPassword('');
+        setName('');
+        setPopupOpen(false); // Close popup after creating a new user
+      }
+    } catch (error) {
+      console.error('Error creating account:', error);
+    }
   };
 
   return (
@@ -94,8 +114,6 @@ const MyPage = () => {
               <div>
                 <h2>My Info</h2>
                 <p>Name: {currentUser.name}</p>
-                <p>Sex: {currentUser.sex}</p>
-                <p>Age: {currentUser.age}</p>
                 <p>Email: {currentUser.email}</p>
               </div>
             </Tab>
@@ -132,12 +150,7 @@ const MyPage = () => {
           </TabLayout>
         </div>
       ) : (
-        <div>
-          {users.map((user, index) => (
-            <Button key={index} onClick={() => login(user.email, user.password)}>
-              Login as {user.name}
-            </Button>
-          ))}
+        <div className={css.mypageButtons}>
           <Button onClick={() => { setPopupType('login'); setPopupOpen(true); }}>Login</Button>
           <Button onClick={() => { setPopupType('create'); setPopupOpen(true); }}>Create Account</Button>
         </div>
@@ -167,8 +180,6 @@ const MyPage = () => {
               <InputField placeholder="Name" value={name} onChange={({ value }) => setName(value)} />
               <InputField placeholder="Email" value={email} onChange={({ value }) => setEmail(value)} />
               <InputField placeholder="Password" value={password} onChange={({ value }) => setPassword(value)} type="password" />
-              <InputField placeholder="Sex" value={sex} onChange={({ value }) => setSex(value)} />
-              <InputField placeholder="Age" value={age} onChange={({ value }) => setAge(value)} />
             </div>
             <div>
               <Button size="small" className={css.buttonCell} onClick={handleCreateAccount}>

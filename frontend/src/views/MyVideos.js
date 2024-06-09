@@ -1,16 +1,14 @@
 /* eslint-disable */
 
 import Alert from '@enact/sandstone/Alert';
-import BodyText from '@enact/sandstone/BodyText';
 import Button from '@enact/sandstone/Button';
 import css from './Main.module.less';
 import $L from '@enact/i18n/$L';
 import { useConfigs } from '../hooks/configs';
 import { usePopup } from './HomeState';
 import { InputField } from '@enact/sandstone/Input';
-
+import { deleteVideo } from '../hooks/server'; // Import the deleteVideo function
 import React, { useState, useEffect } from 'react';
-
 import Region from '@enact/sandstone/Region';
 import RadioItem from '@enact/sandstone/RadioItem';
 import MediaOverlay from '@enact/sandstone/MediaOverlay';
@@ -32,13 +30,15 @@ const MyVideos = () => {
   const [editVideoThumbnail, setEditVideoThumbnail] = useState(''); // New state for thumbnail
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkCount, setBookmarkCount] = useState(0);
 
   const [videos, setVideos] = useState([
-    { text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4', content: 'VR Headset content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4', content: 'Blood Sample content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4', content: 'Tattoo content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4', content: 'Clinic content', thumbnail: 'https://example.com/thumbnail.jpg' }
+    { id: 1, text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { id: 2, text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4', content: 'VR Headset content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { id: 3, text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4', content: 'Blood Sample content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { id: 4, text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4', content: 'Tattoo content', thumbnail: 'https://example.com/thumbnail.jpg' },
+    { id: 5, text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4', content: 'Clinic content', thumbnail: 'https://example.com/thumbnail.jpg' }
   ]);
 
   const [playingVideo, setPlayingVideo] = useState(null); // State to track the playing video
@@ -63,7 +63,7 @@ const MyVideos = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        setVideos([...videos, { text: newVideoTitle, src: newVideoSrc, content: newVideoContent, thumbnail: newVideoThumbnail }]);
+        setVideos([...videos, { id: responseData.id, text: newVideoTitle, src: newVideoSrc, content: newVideoContent, thumbnail: newVideoThumbnail }]);
         setNewVideoTitle('');
         setNewVideoSrc('');
         setNewVideoContent('');
@@ -77,18 +77,24 @@ const MyVideos = () => {
     }
   };
 
-  const handleDeleteVideo = () => {
+  const handleDeleteVideo = async () => {
     if (selectedVideo !== null) {
-      setVideos(videos.filter((_, index) => index !== selectedVideo));
-      setSelectedVideo(null);
-      handleDeleteEditPopupClose();
+      try {
+        const videoToDelete = videos[selectedVideo];
+        await deleteVideo(videoToDelete.id);
+        setVideos(videos.filter((_, index) => index !== selectedVideo));
+        setSelectedVideo(null);
+        handleDeleteEditPopupClose();
+      } catch (error) {
+        console.error('Error deleting video:', error);
+      }
     }
   };
 
   const handleEditVideo = () => {
     if (selectedVideo !== null) {
       const updatedVideos = videos.map((video, index) =>
-        index === selectedVideo ? { text: editVideoTitle, src: editVideoSrc, content: editVideoContent, thumbnail: editVideoThumbnail } : video
+        index === selectedVideo ? { ...video, text: editVideoTitle, src: editVideoSrc, content: editVideoContent, thumbnail: editVideoThumbnail } : video
       );
       setVideos(updatedVideos);
       setSelectedVideo(null);
@@ -119,6 +125,41 @@ const MyVideos = () => {
   const handleStopVideo = () => {
     setPlayingVideo(null);
   };
+
+  const handleBookmark = async () => {
+    const newBookmarkedStatus = !bookmarked;
+    setBookmarked(newBookmarkedStatus);
+
+    // Update bookmark status on the server
+    try {
+      const response = await fetch(`http://3.36.212.250:3000/api/videos/${playingVideo.id}/bookmark`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookmarked: newBookmarkedStatus }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBookmarkCount(data.bookmarkCount);
+      } else {
+        console.error('Error updating bookmark:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating bookmark:', error);
+    }
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const videosData = await fetchAllVideos();
+        setVideos(videosData);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -268,7 +309,10 @@ const MyVideos = () => {
               pauseIcon="pause"
               playIcon="play"
             >
+              <Button icon="bookmark" size="small" selected={bookmarked} onClick={handleBookmark} />
+              <span>{bookmarkCount} Bookmarks</span>
             </MediaControls>
+            
           </VideoPlayer>
         </div>
       )}
