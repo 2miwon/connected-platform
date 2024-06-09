@@ -95,7 +95,7 @@ const MyVideos = () => {
       try {
         const videoToDelete = videos[selectedVideo];
         await deleteVideo(videoToDelete.id);
-        setVideos(videos.filter((_, index) => index !== selectedVideo));
+        setVideos(videos?.filter((_, index) => index !== selectedVideo));
         setSelectedVideo(null);
         handleDeleteEditPopupClose();
       } catch (error) {
