@@ -131,6 +131,11 @@ func jsonParser(c *fiber.Ctx) map[string]interface{} {
 func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 	body := jsonParser(c)
+
+	if body["email"] == nil || body["password"] == nil {
+		return c.SendStatus(400)
+	}
+
 	filter := bson.M{"email": body["email"].(string)}
 	
 	err := checkDocumentNotExists(collection, ctx, filter, "User already exists")
@@ -175,6 +180,9 @@ func getMyInfo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 
 	body := jsonParser(c)
 	var rst bson.M
+	if body["token"] == nil {
+		return c.SendStatus(403)
+	}
 	err := collection.FindOne(ctx, bson.M{"token": body["token"].(string)}).Decode(&rst)
 	if err != nil {
 		return c.SendStatus(403)
@@ -198,6 +206,10 @@ func getMyInfo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 func createVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 	body := jsonParser(c)
+
+	if body["title"] == nil || body["content"] == nil || body["url"] == nil || body["author_id"] == nil {
+		return c.SendStatus(400)
+	}
 
 	video := Video{
 		Title: body["title"].(string),
@@ -254,6 +266,10 @@ func deleteVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 		body := jsonParser(c)
 
+		if body["video_id"] == nil || body["my_id"] == nil {
+			return c.SendStatus(400)
+		}
+
 		filter := bson.M{
 			"_id": body["video_id"],
 			"author_id": body["my_id"],
@@ -288,6 +304,10 @@ func deleteVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 	body := jsonParser(c)
+
+	if body["id"] == nil {
+		return c.SendStatus(400)
+	}
 
 	rst, err := collection.Find(ctx, bson.M{"author_id": body["id"]})
 	if err != nil {
@@ -372,6 +392,10 @@ func login(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 	body := jsonParser(c)
+
+	if body["token"] == nil {
+		return c.SendStatus(400)
+	}
 
 	filter := bson.M{"token": body["token"]}
 	err := checkDocumentExists(collection, ctx, filter, "User not found")
