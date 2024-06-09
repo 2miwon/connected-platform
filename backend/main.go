@@ -157,6 +157,8 @@ func main() {
 
 	app := fiber.New()
 
+	app.Static("/public", "./")
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*", // "http://localhost:3000"
 		AllowHeaders: "Origin, Content-Type, Accept",
@@ -166,7 +168,10 @@ func main() {
 		return c.SendStatus(200)
 	})
 
-	app.Get("/docs/*", swagger.HandlerDefault)
+	// app.Get("/docs/*", swagger.HandlerDefault)
+	app.Get("/docs/*", swagger.New(swagger.Config{ 
+		URL: "http://localhost:3000/public/oapi_codegen.yml",
+	   }))
 
 	app.Get("/debug/:colName", func(c *fiber.Ctx) error {
 		colName := c.Params("colName")

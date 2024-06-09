@@ -1,4 +1,4 @@
-// package test
+package main
 
 // import (
 // 	"context"
@@ -60,7 +60,7 @@
 // 	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 // 	// defer cancel()
 // 	ctx := context.Background()
-	
+
 // 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 // 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 // 	// client, err := mongo.Connect(context.TODO(), opts)
