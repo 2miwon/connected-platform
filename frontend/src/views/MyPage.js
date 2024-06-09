@@ -1,19 +1,20 @@
-/* eslint-disable */
-
 import React, { useState } from 'react';
 import { Button } from '@enact/sandstone/Button';
 import { InputField } from '@enact/sandstone/Input';
 import Popup from '@enact/sandstone/Popup';
-import css from './Main.module.less';
+import TabLayout, { Tab } from '@enact/sandstone/TabLayout';
 import Region from '@enact/sandstone/Region';
+import css from './Main.module.less';
 
 const MyPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [users, setUsers] = useState([
-    { name: 'Peter', sex: 'Male', age: 30, email: 'peter@example.com' },
-    { name: 'Anna', sex: 'Female', age: 25, email: 'anna@example.com' }
+    { id: 1, name: 'Peter', sex: 'Male', age: 30, email: 'peter@example.com' },
+    { id: 2, name: 'Anna', sex: 'Female', age: 25, email: 'anna@example.com' }
   ]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [bookmarks, setBookmarks] = useState([]);
+  const [finishedVideos, setFinishedVideos] = useState([]); // New state for finished videos
 
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [newUserName, setNewUserName] = useState('');
@@ -24,15 +25,41 @@ const MyPage = () => {
   const login = (user) => {
     setCurrentUser(user);
     setIsLoggedIn(true);
+    fetchBookmarks(user.id);
+    fetchFinishedVideos(user.id); // Fetch finished videos when logging in
   };
 
   const logout = () => {
     setCurrentUser(null);
     setIsLoggedIn(false);
+    setBookmarks([]);
+    setFinishedVideos([]); // Clear finished videos on logout
+  };
+
+  const fetchBookmarks = (userId) => {
+    fetch(`/api/users/${userId}/bookmarks`)
+      .then((response) => response.json())
+      .then((data) => {
+        setBookmarks(data.bookmarks);
+      });
+  };
+
+  const fetchFinishedVideos = (userId) => { // New function to fetch finished videos
+    fetch(`/api/users/${userId}/finished-videos`)
+      .then((response) => response.json())
+      .then((data) => {
+        setFinishedVideos(data.finishedVideos);
+      });
   };
 
   const handleAddUser = () => {
-    const newUser = { name: newUserName, sex: newUserSex, age: parseInt(newUserAge), email: newUserEmail };
+    const newUser = {
+      id: users.length + 1,
+      name: newUserName,
+      sex: newUserSex,
+      age: parseInt(newUserAge),
+      email: newUserEmail
+    };
     setUsers([...users, newUser]);
     setNewUserName('');
     setNewUserSex('');
@@ -43,17 +70,43 @@ const MyPage = () => {
 
   return (
     <div className={css.myPage}>
-      <Region title="My Page" />
       {isLoggedIn && currentUser ? (
         <div>
-          <Button onClick={logout}>Logout</Button>
-          <div>
-            <h2>My Info</h2>
-            <p>Name: {currentUser.name}</p>
-            <p>Sex: {currentUser.sex}</p>
-            <p>Age: {currentUser.age}</p>
-            <p>Email: {currentUser.email}</p>
+          <div className={css.header}>
+            <Region title="My Page" />
+            <Button className={css.logoutButton} onClick={logout}>Logout</Button>
           </div>
+          <TabLayout>
+            <Tab title="My Info">
+              <div>
+                <h2>My Info</h2>
+                <p>Name: {currentUser.name}</p>
+                <p>Sex: {currentUser.sex}</p>
+                <p>Age: {currentUser.age}</p>
+                <p>Email: {currentUser.email}</p>
+              </div>
+            </Tab>
+            <Tab title="Bookmarked Videos">
+              <div>
+                <h2>Bookmarked Videos</h2>
+                <ul>
+                  {bookmarks.map((bookmark, index) => (
+                    <li key={index}>Video ID: {bookmark}</li>
+                  ))}
+                </ul>
+              </div>
+            </Tab>
+            <Tab title="Finished Videos">
+              <div>
+                <h2>Finished Videos</h2>
+                <ul>
+                  {finishedVideos.map((video, index) => (
+                    <li key={index}>Video ID: {video}</li>
+                  ))}
+                </ul>
+              </div>
+            </Tab>
+          </TabLayout>
         </div>
       ) : (
         <div>

@@ -9,6 +9,7 @@ import {useConfigs} from '../hooks/configs';
 import {usePopup} from './HomeState';
 import {InputField} from '@enact/sandstone/Input';
 import {fetchAllVideos} from '../hooks/fetch';
+import { addVideo } from '../hooks/fetch';
 
 import {useVideoTime} from './HomeState';
 // Import react
@@ -49,13 +50,20 @@ const MyVideos = () => {
         { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4' }
       ]);
 
-    const handleAddVideo = () => {
-        fetchAllVideos();
-        setVideos([...videos, { text: newVideoTitle, src: newVideoSrc }]);
-        setNewVideoTitle('');
-        setNewVideoSrc('');
-        handlePopupClose();
-    };
+      const handleAddVideo = async () => {
+        const user = { id: 1 }; // Replace this with actual user data
+        try {
+          const response = await addVideo(newVideoTitle, '', newVideoSrc, user);
+          if (response) {
+            setVideos([...videos, { text: newVideoTitle, src: newVideoSrc }]);
+            setNewVideoTitle('');
+            setNewVideoSrc('');
+            handlePopupClose();
+          }
+        } catch (error) {
+          console.error('Error adding video:', error);
+        }
+      };
 
     const handleDeleteVideo = () => {
       if (selectedVideo !== null) {
@@ -88,6 +96,21 @@ const MyVideos = () => {
       }
     };
 
+    const handleMouseEnter = (index) => {
+      const videoElement = document.getElementById(`video-${index}`);
+      if (videoElement) {
+        videoElement.play();
+      }
+    };
+  
+    const handleMouseLeave = (index) => {
+      const videoElement = document.getElementById(`video-${index}`);
+      if (videoElement) {
+        videoElement.pause();
+        videoElement.currentTime = 0; // Reset the video to the beginning
+      }
+    };
+
 	
   // 내 영상
   // 내 영상 업로드 (link)
@@ -101,21 +124,22 @@ const MyVideos = () => {
 			
 
 			</div>
-
-			<div className={css.videoGridContainer}>
         <div className={css.videoGrid}>
 
         
-            {videos.map((video, index) => (
-            <MediaOverlay key={index} title={video.text} loop>
-                <source src={video.src} />
-            </MediaOverlay>
-                //subtitle={video.src}
-                
-            
-            ))}
+        {videos.map((video, index) => (
+					<div
+						key={index}
+						onMouseEnter={() => handleMouseEnter(index)}
+						onMouseLeave={() => handleMouseLeave(index)}
+					>
+						<MediaOverlay title={video.text} source={video.src}>
+							<video id={`video-${index}`} src={video.src} width="100%" height="auto" />
+						</MediaOverlay>
+					</div>
+				))}
           </div>
-        </div>
+
 			<div>
       <Button onClick={handlePopupOpen} size="small" className={css.buttonCell}>
         {$L('Add Video')}

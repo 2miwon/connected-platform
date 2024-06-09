@@ -5,13 +5,22 @@
 .mediaContainer {
 	display: flex;
 	flex-wrap: wrap; /* Allows wrapping to the next line if necessary */
-	justify-content: space-between; /* Distributes space between items */
+	justify-content: flex-start; /* Distributes space between items */
 	padding: 10px;
+}
+
+.mainHome {
+	display: flex;
+	padding: 10px;
+	margin-left: 20px;
+
 }
 
 .searchBar {
 	display: flex;
 	padding: 10px;
+	margin-left: 250px;
+
 }
 
 .videoGridContainer {
@@ -36,3 +45,56 @@
 	top: -50px;
 	
 }
+
+
+// COMMENT BOX SECTION //
+
+.commentSection {
+	width: 100%;
+	max-width: 55%; /* Set a maximum width for the comment section */
+	padding: 10px;
+
+	border-radius: 5px;
+	display: flex;
+	flex-direction: column;
+	margin-left: 100%;
+  }
+  
+  .commentsContainer {
+	flex-grow: 1;
+	overflow-y: auto;
+	max-height: 100%; /* Set a maximum height for the comment section */
+  }
+  
+  .comment {
+	padding: 5px;
+	border-bottom: 1px solid #ccc; /* Separator for each comment */
+	word-wrap: break-word; /* Ensure long comments are wrapped */
+  }
+  
+  .commentBox {
+	margin-top: 10%;
+	margin-left: -10%;
+  }
+
+  .addButton {
+	margin-bottom: -35%;
+	margin-left: -10%;
+  }
+
+  // COMMENT BOX SECTION //
+
+
+  .myPage {
+	padding: 20px;
+  }
+  
+  .header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+  }
+  
+  .logoutButton {
+	margin-left: auto;
+  }

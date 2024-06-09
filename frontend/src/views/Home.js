@@ -33,7 +33,7 @@ const Home = () => {
 	const [videos, setVideos] = useState([]);
 	const [state, setState] = useState({
 		name: '',
-		filterType: 'Order from A~Z'
+		filterType: 'Order A~Z'
 	});
 	const formatTime = (time) => 
 	{
@@ -62,11 +62,11 @@ const Home = () => {
 //     { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4' }
 //   ];
 
-  	const filterOptions = ['Order from A~Z', 'Order from Z~A', 'Order by Position', 'Reverse Order by Position'];
+  	const filterOptions = ['Order A~Z', 'Order Z~A', 'Most recent', 'Least Recent'];
 
 
-	  const filteredVideos = videos
-    .filter(video => video.Title.toLowerCase().includes(state.name.toLowerCase()))
+	  const filteredVideos = Array.isArray(videos) ? videos.filter(video => video.Title.toLowerCase().includes(state.name.toLowerCase())) : [];
+
     // .sort((a, b) => {
     //   if (state.filterType === 'Order from A~Z') {
     //     return a.text.localeCompare(b.text);
@@ -83,14 +83,18 @@ const Home = () => {
 	return (
 		<>
 			
+			<div className={css.mainHome}>
+			<Region title="     Main Home     " />
 			<div className={css.searchBar}>
-			<Region title="Main Home" />
-			<InputField
+				<InputField
 				type="text"
 				value={state.name}
 				onChange={e => setState(prev => ({...prev, name: e.value}))}
 				placeholder="Search"
-			/>
+				/>
+
+			</div>
+			
 
 				<div className={css.dropDownAlign}>
 					<Dropdown
