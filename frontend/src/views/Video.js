@@ -1,12 +1,10 @@
-/* eslint-disable */
-
 import VideoPlayer from '@enact/sandstone/VideoPlayer';
 import { MediaControls } from '@enact/sandstone/MediaPlayer';
 import Button from '@enact/sandstone/Button';
 
 import Popup from '@enact/sandstone/Popup';
 import RadioItem from '@enact/sandstone/RadioItem';
-import {InputField} from '@enact/sandstone/Input';
+import { InputField } from '@enact/sandstone/Input';
 
 import React, { useState, useRef, useEffect } from 'react';
 
@@ -23,9 +21,7 @@ const Video = (prop) => {
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(0);
 
-
   const videoRef = useRef(null);
-  //const currentVideoId = videoIdList[selectedOption];
 
   const handleBookmark = () => {
     const newBookmarkedStatus = !bookmarked;
@@ -43,7 +39,6 @@ const Video = (prop) => {
       });
   };
 
-
   const handleDropdownChange = (event) => {
     setSelectedOption(event.selected);
   };
@@ -52,7 +47,6 @@ const Video = (prop) => {
     setPlaybackSpeed(speed);
     if (videoRef.current) {
       videoRef.current.playbackRate = speed;
-
     }
     setSpeedPopupOpen(false);
   };
@@ -90,76 +84,76 @@ const Video = (prop) => {
     if (videoRef.current) {
       videoRef.current.playbackRate = playbackSpeed;
     }
-	console.log(playbackSpeed);
   }, [playbackSpeed]);
 
   const videoStyle = isBigplayer
     ? {
-      // BIGPLAYER SETTINGS
-      height: '100vh',
-      transform: 'scale(1)',
-      transformOrigin: 'top',
-      width: '100vw',
-      display: 'flex',
-      justifyContent: 'center',
-      margin: '-60px',
-    }
+        // BIGPLAYER SETTINGS
+        height: '100vh',
+        transform: 'scale(1)',
+        transformOrigin: 'top',
+        width: '75vw', // Adjusted to make space for the comment section
+        display: 'flex',
+        justifyContent: 'center',
+        margin: '0',
+      }
     : {
-      height: '60vh',
-      transform: 'scale(1)',
-      transformOrigin: 'top',
-      width: '60vw',
-      display: 'flex',
-      justifyContent: 'left',
-      margin: screenLeft,
-    };
+        height: '60vh',
+        transform: 'scale(1)',
+        transformOrigin: 'top',
+        width: '60vw',
+        display: 'flex',
+        justifyContent: 'left',
+        margin: '0',
+      };
 
   return (
-    <div style={videoStyle}>
-      <VideoPlayer
-        ref={videoRef}
-        autoCloseTimeout={1000}
-        backButtonAriaLabel="go to previous"
-        feedbackHideDelay={3000}
-        initialJumpDelay={400}
-        jumpDelay={200}
-        loop
-        miniFeedbackHideDelay={2000}
-        title="Sandstone VideoPlayer Test Video"
-        titleHideDelay={4000}
-        muted
-      >
-        <source src={getVideoSource()} type="video/mp4" />
-        <infoComponents>
-          A video about some things happening to and around some characters.
-          Very exciting stuff.
-        </infoComponents>
-        <MediaControls
-          jumpBackwardIcon="jumpbackward"
-          jumpForwardIcon="jumpforward"
-          pauseIcon="pause"
-          playIcon="play"
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={videoStyle}>
+        <VideoPlayer
+          ref={videoRef}
+          autoCloseTimeout={1000}
+          backButtonAriaLabel="go to previous"
+          feedbackHideDelay={3000}
+          initialJumpDelay={400}
+          jumpDelay={200}
+          loop
+          miniFeedbackHideDelay={2000}
+          title="Sandstone VideoPlayer Test Video"
+          titleHideDelay={4000}
+          muted
         >
-          <Button icon="list" size="small" onClick={() => setListPopupOpen(true)} />
-          <Button icon="playspeed" size="small" onClick={() => setSpeedPopupOpen(true)} />
-          <Button icon="miniplayer" size="small" onClick={handleBigplayerToggle} />
-          <Button icon="bookmark" size="small" selected={bookmarked} onClick={handleBookmark} />
-          <span>{bookmarkCount} Bookmarks</span>
-          
-        </MediaControls>
-      </VideoPlayer>
+          <source src={getVideoSource()} type="video/mp4" />
+          <infoComponents>
+            A video about some things happening to and around some characters.
+            Very exciting stuff.
+          </infoComponents>
+          <MediaControls
+            jumpBackwardIcon="jumpbackward"
+            jumpForwardIcon="jumpforward"
+            pauseIcon="pause"
+            playIcon="play"
+          >
+            <Button icon="list" size="small" onClick={() => setListPopupOpen(true)} />
+            <Button icon="playspeed" size="small" onClick={() => setSpeedPopupOpen(true)} />
+            <Button icon="miniplayer" size="small" onClick={handleBigplayerToggle} />
+            <Button icon="bookmark" size="small" selected={bookmarked} onClick={handleBookmark} />
+            <span>{bookmarkCount} Bookmarks</span>
+          </MediaControls>
+        </VideoPlayer>
+      </div>
 
-      <div className={css.commentSection}>
+      <div className={css.commentSectionMod}>
         <h2>Comments</h2>
-        <div className={css.commentsContainer}>
+        <div className={css.commentsContainerMod}>
           {comments.map((comment, index) => (
-            <div key={index} className={css.comment}>
+            <div key={index} className={css.commentMod}>
               <p>{comment}</p>
             </div>
           ))}
         </div>
 
-        <div className={css.commentBox}>
+        <div className={css.commentBoxMod}>
           <InputField
             placeholder="Write a comment..."
             value={newComment}
@@ -170,11 +164,10 @@ const Video = (prop) => {
             }}
           />
         </div>
-        
-        <div className={css.addButton}>
+
+        <div className={css.addButtonMod}>
           <Button onClick={handleAddComment}>Add Comment</Button>
         </div>
-        
       </div>
 
       <Popup open={isListPopupOpen} onClose={() => setListPopupOpen(false)}>
@@ -194,13 +187,9 @@ const Video = (prop) => {
           >
             {speed}
           </RadioItem>
-		  
         ))}
-
       </Popup>
     </div>
-
-    
   );
 };
 

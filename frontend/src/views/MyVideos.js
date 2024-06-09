@@ -49,14 +49,12 @@ const MyVideos = () => {
     async function fetchVideos() {
       try {
           const response = await fetchMyVideos(user);
-          console.log(response)
           setVideos(response);
       } catch (error) {
         console.error('Error fetching videos:', error);
       }
     };
     fetchVideos();
-    console.log(videos);
   }, [user]);
 
   const [playingVideo, setPlayingVideo] = useState(null); // State to track the playing video
@@ -123,9 +121,9 @@ const MyVideos = () => {
   const openEditMode = () => {
     if (selectedVideo !== null) {
       const video = videos[selectedVideo];
-      setEditVideoTitle(video.Title);
-      setEditVideoSrc(video.URL);
-      setEditVideoContent(video.Content);
+      setEditVideoTitle(video.text);
+      setEditVideoSrc(video.src);
+      setEditVideoContent(video.content);
       setIsEditing(true);
     }
   };
@@ -222,7 +220,7 @@ const MyVideos = () => {
                       selected={selectedVideo === index}
                       onClick={() => setSelectedVideo(index)}
                     >
-                      {video.comment}
+                      {video.text}
                     </RadioItem>
                   ))}
                 </div>
@@ -275,9 +273,10 @@ const MyVideos = () => {
 
       <div className={css.mediaContainer}>
         {videos?.map((video, index) => (
-          <div key={index} onClick={() => handlePlayVideo(video)}>
-            <MediaOverlay title={video.Comment} source={video.URL}>
-              <video id={`video-${index}`} src={video.URL} width="100%" height="auto" />
+          <div key={index} className={css.mediaItem} onClick={() => handlePlayVideo(video)}>
+            <MediaOverlay title={video.Title} muted>
+              <video id={`video-${index}`} src={video.URL} width="100%" height="auto" autoPlay loop muted />
+              <source src={video.URL} />
             </MediaOverlay>
           </div>
         ))}
@@ -300,7 +299,7 @@ const MyVideos = () => {
           >
             <source src={playingVideo.URL} type="video/mp4" />
             <infoComponents>
-              {playingVideo.Content}
+              {playingVideo.content}
             </infoComponents>
             <MediaControls
               jumpBackwardIcon="jumpbackward"
