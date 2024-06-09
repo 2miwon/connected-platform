@@ -63,6 +63,7 @@ export const register = async (email, username, password) => {
 export const fetchMyVideos = async (user) => {
   try {
     const response = await axios.get(`${API_URL}/video/user/${user._id}`);
+    console.log("Re",response)
     return response.data;
   } catch (error) {
     console.error(error);
