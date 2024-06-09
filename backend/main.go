@@ -128,7 +128,7 @@ func jsonParser(c *fiber.Ctx) map[string]interface{} {
 // @Success 200 {object} User
 // @Failure 400 {object} string "User already exists"
 // @Failure 500 {object} string "Internal server error"
-// @Router /user/register [post]
+// @Router /register [post]
 func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 	body := jsonParser(c)
