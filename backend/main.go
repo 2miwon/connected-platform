@@ -417,6 +417,14 @@ func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 			VideoID: body["video_history"].(string),
 			Date:    time.Now(),
 		}
+		
+		if 
+		remove := bson.M{"$pull": bson.M{"history": bson.M{"VideoID": videoHistory.VideoID}}}
+    	_, err := collection.UpdateOne(context.TODO(), filter, remove)
+    	if err != nil {
+    	    log.Fatal(err)
+    	}
+
 		add["$push"] = bson.M{"history": videoHistory}
 	}
 
