@@ -1,4 +1,172 @@
+basePath: /docs
+definitions:
+  main.User:
+    properties:
+      created:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      password:
+        type: string
+      token:
+        type: string
+      username:
+        type: string
+    type: object
+  main.Video:
+    properties:
+      authorID:
+        description: ThumbnailURL *string `bson:"thumbnail_url"`
+        type: string
+      content:
+        type: string
+      created:
+        type: string
+      deleted:
+        type: string
+      id:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
+host: 3.36.212.250:3000
 info:
-  contact: {}
-paths: {}
+  contact:
+    email: fiber@swagger.io
+    name: API Support
+  description: This is a swagger docs for Fiber
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: SuperNova API
+  version: "1.0"
+paths:
+  /users/my_info:
+    post:
+      consumes:
+      - application/json
+      description: Get user info with token
+      parameters:
+      - description: User token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.User'
+        "403":
+          description: User not found
+          schema:
+            type: string
+      summary: Get user info
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email, username and password
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.User'
+        "400":
+          description: User already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - users
+  /videos/all:
+    get:
+      description: Get all videos
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Video'
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all videos
+      tags:
+      - videos
+  /videos/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new video with title, content, url, author_id
+      parameters:
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: Content
+        in: body
+        name: content
+        required: true
+        schema:
+          type: string
+      - description: URL
+        in: body
+        name: url
+        required: true
+        schema:
+          type: string
+      - description: Author ID
+        in: body
+        name: author_id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Video'
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a new video
+      tags:
+      - videos
 swagger: "2.0"

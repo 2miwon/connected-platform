@@ -17,9 +17,8 @@ import (
 	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
-	"golang.org/x/crypto/bcrypt"
-
 	_ "github.com/2miwon/video-streaming/docs"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -27,7 +26,7 @@ type User struct {
 	Email	 string `bson:"email"`
     Username string `bson:"username"`
     Password string `bson:"password"`
-	Created primitive.Timestamp `bson:"created"`
+	Created time.Time `bson:"created"`
 	Token string `bson:"token"`
 }
 
@@ -38,8 +37,8 @@ type Video struct {
 	URL 	 string `bson:"url"`
 	// ThumbnailURL *string `bson:"thumbnail_url"`
 	AuthorID string `bson:"author_id"`
-	Created primitive.Timestamp `bson:"created"`
-	Deleted *primitive.Timestamp `bson:"deleted"`
+	Created time.Time `bson:"created"`
+	Deleted *time.Time `bson:"deleted"`
 }
 
 type Feedback struct {
@@ -47,11 +46,11 @@ type Feedback struct {
 	PostID	 string `bson:"post_id"`
 	UserID string `bson:"author_id"`
 	Content  *string `bson:"content"`
-	Bookmarked *primitive.Timestamp `bson:"bookmark"`
+	Bookmarked *time.Time `bson:"bookmark"`
 	Like *bool `bson:"like"`
-	Created primitive.Timestamp `bson:"created"`
-	Updated primitive.Timestamp `bson:"updated"`
-	Deleted *primitive.Timestamp `bson:"deleted"`
+	Created time.Time `bson:"created"`
+	Updated time.Time `bson:"updated"`
+	Deleted *time.Time `bson:"deleted"`
 }
 
 type History struct {
@@ -59,8 +58,8 @@ type History struct {
 	PostID	 string `bson:"post_id"`
 	UserID string `bson:"user_id"`
 	Progress *float64 `bson:"progress"`
-	Updated primitive.Timestamp `bson:"updated"`
-	Deleted *primitive.Timestamp `bson:"deleted"`
+	Updated time.Time `bson:"updated"`
+	Deleted *time.Time `bson:"deleted"`
 }
 
 func connectDB(uri string) (*mongo.Client, context.Context, error) {
@@ -163,7 +162,7 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 		Email: body["email"].(string),
 		Username: body["email"].(string),
 		Password: string(hashedPassword),
-		Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
+		Created: time.Now(),
 		Token: string(token),
 	}
 	rst, err := createUser(collection, ctx, user)
@@ -178,7 +177,7 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param   token     body    string     true        "Token
+// @Param   token     body    string     true        "User token"
 // @Success 200 {object} User
 // @Failure 403 {object} string "User not found"
 // @Router /users/my_info [post]
@@ -216,7 +215,7 @@ func createVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 		Content: body["content"].(string),
 		URL: body["url"].(string),
 		AuthorID: body["author_id"].(string),
-		Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
+		Created: time.Now(),
 	}
 
 	// if body["thumbnail_url"] != nil {
@@ -412,8 +411,8 @@ func main() {
 		feedback := Feedback{
 			PostID: body["post_id"].(string),
 			UserID: body["author_id"].(string),
-			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
-			Updated: primitive.Timestamp{T: uint32(time.Now().Unix())},
+			Created: time.Now(),
+			Updated: time.Now(),
 		}
 		rst, err := collection.InsertOne(ctx, feedback)
 		if err != nil {
@@ -512,7 +511,7 @@ func main() {
 		history := History{
 			PostID: body["post_id"].(string),
 			UserID: body["user_id"].(string),
-			Updated: primitive.Timestamp{T: uint32(time.Now().Unix())},
+			Updated: time.Now(),
 		}
 		rst, err := collection.InsertOne(ctx, history)
 		if err != nil {
