@@ -12,8 +12,8 @@ import RadioItem from '@enact/sandstone/RadioItem';
 import MediaOverlay from '@enact/sandstone/MediaOverlay';
 import VideoPlayer from '@enact/sandstone/VideoPlayer';
 import { MediaControls } from '@enact/sandstone/MediaPlayer';
-
-import {useUserStore} from "../zustand"
+import { fetchMyVideos } from '../hooks/server';
+import { useUserStore } from "../zustand"
 
 
 const API_URL = 'http://3.36.212.250:3000'; // Your API URL 
@@ -44,13 +44,19 @@ const MyVideos = () => {
 
   const {user, setUser} = useUserStore();
 
-  const [videos, setVideos] = useState([
-    { id: 1, text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 2, text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4', content: 'VR Headset content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 3, text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4', content: 'Blood Sample content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 4, text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4', content: 'Tattoo content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 5, text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4', content: 'Clinic content', thumbnail: 'https://example.com/thumbnail.jpg' }
-  ]);
+  const [videos, setVideos] = useState(null);
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+          const response = await fetchMyVideos(user);
+          console.log("res",response)
+          setVideos(response);
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+      }
+    };
+    fetchVideos();
+  }, [user]);
 
   const [playingVideo, setPlayingVideo] = useState(null); // State to track the playing video
 
@@ -59,10 +65,8 @@ const MyVideos = () => {
       title: newVideoTitle,
       content: newVideoContent,
       url: newVideoSrc,
-      author_id: 'AuthorID', // Replace with actual author ID if available
-      thumbnail_url: newVideoThumbnail
+      author_id: user._id, // Replace with actual author ID if available
     };
-
     try {
       const response = await fetch('http://3.36.212.250:3000/video/create', {
         method: 'POST',
@@ -74,7 +78,6 @@ const MyVideos = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        setVideos([...videos, { id: responseData.id, text: newVideoTitle, src: newVideoSrc, content: newVideoContent, thumbnail: newVideoThumbnail }]);
         setNewVideoTitle('');
         setNewVideoSrc('');
         setNewVideoContent('');
@@ -104,7 +107,7 @@ const MyVideos = () => {
 
   const handleEditVideo = () => {
     if (selectedVideo !== null) {
-      const updatedVideos = videos.map((video, index) =>
+      const updatedVideos = videos?.map((video, index) =>
         index === selectedVideo ? { ...video, text: editVideoTitle, src: editVideoSrc, content: editVideoContent, thumbnail: editVideoThumbnail } : video
       );
       setVideos(updatedVideos);
@@ -220,7 +223,7 @@ const MyVideos = () => {
               <>
                 <span>{$L('Select a video to delete or edit.')}</span>
                 <div>
-                  {videos.map((video, index) => (
+                  {videos?.map((video, index) => (
                     <RadioItem
                       key={index}
                       selected={selectedVideo === index}
@@ -283,7 +286,7 @@ const MyVideos = () => {
       </div>
 
       <div className={css.mediaContainer}>
-        {videos.map((video, index) => (
+        {videos?.map((video, index) => (
           <div key={index} onClick={() => handlePlayVideo(video)}>
             <MediaOverlay title={video.text} source={video.src}>
               <video id={`video-${index}`} src={video.src} width="100%" height="auto" />
@@ -326,7 +329,7 @@ const MyVideos = () => {
             <div className={css.commentSection}>
               <h2>Comments</h2>
               <div className={css.commentsContainer}>
-                {comments.map((comment, index) => (
+                {comments?.map((comment, index) => (
                   <div key={index} className={css.comment}>
                     <p>{comment}</p>
                   </div>

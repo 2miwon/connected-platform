@@ -62,7 +62,7 @@ export const register = async (email, username, password) => {
 
 export const fetchMyVideos = async (user) => {
   try {
-    const response = await axios.get(`${API_URL}/video/user/${user.id}`);
+    const response = await axios.get(`${API_URL}/video/user/${user._id}`);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -75,7 +75,7 @@ export const addVideo = async (title, content, url, user) => {
       title: title,
       content: content,
       url: url,
-      author_id: user.id
+      author_id: user._id
     });
     return response.data;
   } catch (error) {
@@ -94,10 +94,35 @@ export const deleteVideo = async (video_id) => {
   }
 }
 
-export const addBookmark = async (token) => {
+export const addBookmark = async (token, video_id) => {
   try {  
     const response = await axios.post(`${API_URL}/user/update`, {
       token: token,
+      add_bookmark: video_id,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const deleteBookmark = async (token, video_id) => {
+  try {
+    const response = await axios.post(`${API_URL}/user/update`, {
+      token: token,
+      delete_bookmark: video_id,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const addHistory = async (token, video_id) => {
+  try {
+    const response = await axios.post(`${API_URL}/user/update`, {
+      token: token,
+      video_history: video_id,
     });
     return response.data;
   } catch (error) {

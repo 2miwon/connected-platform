@@ -27,7 +27,6 @@ const Video = (prop) => {
   const videoRef = useRef(null);
   //const currentVideoId = videoIdList[selectedOption];
 
-
   const handleBookmark = () => {
     const newBookmarkedStatus = !bookmarked;
     setBookmarked(newBookmarkedStatus);

@@ -113,7 +113,7 @@ const Home = () => {
 			<div className={css.mediaContainer}>
 
 			  {filteredVideos.map((video, index) => (
-          <MediaOverlay key={index} text={video.Title} loop>
+          <MediaOverlay key={index} text={video.Title} loop muted>
             <source src={video.URL} />
           </MediaOverlay>
         ))}
