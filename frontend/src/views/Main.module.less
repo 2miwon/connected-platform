@@ -1,10 +1,12 @@
 .buttonCell {
 	width: 1000px;
+	opacity:0.5;
 }
 
 .smallerbuttonCell {
 	width: 500px;
 	left: 110%;
+	opacity:0.5;
 }
 
 .mediaContainer {
@@ -62,43 +64,48 @@
 	justify-content: center;
 	align-items: center;
 	background-color: black;
-	z-index: 1000; /* Ensure it's on top of other elements */
+	//z-index: 1000; /* Ensure it's on top of other elements */
   }
 
 // COMMENT BOX SECTION //
 
 .commentSection {
-	width: 100%;
-	max-width: 55%; /* Set a maximum width for the comment section */
+	width: 30%;
+	max-width: 30%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	right: 0;
 	padding: 10px;
-
 	border-radius: 5px;
 	display: flex;
 	flex-direction: column;
-	margin-left: 100%;
-  }
-  
-  .commentsContainer {
+	background-color: transparent;
+	color: white;
+	z-index: 1000;
+}
+
+.commentsContainer {
 	flex-grow: 1;
 	overflow-y: auto;
-	max-height: 100%; /* Set a maximum height for the comment section */
-  }
-  
-  .comment {
+	max-height: calc(100% - 120px); /* Adjust to leave space for the input and button */
+	padding: 10px;
+}
+
+.comment {
 	padding: 5px;
 	border-bottom: 1px solid #ccc; /* Separator for each comment */
 	word-wrap: break-word; /* Ensure long comments are wrapped */
-  }
-  
-  .commentBox {
-	margin-top: 10%;
-	margin-left: -10%;
-  }
+}
 
-  .addButton {
-	margin-bottom: -35%;
-	margin-left: -10%;
-  }
+.commentBox, .addButton {
+	margin-top: 10px;
+	width: 100%;
+}
+
+.commentBox input {
+	width: calc(100% - 20px); /* Adjust width to fit within the padding */
+}
 
   // COMMENT BOX SECTION //
 

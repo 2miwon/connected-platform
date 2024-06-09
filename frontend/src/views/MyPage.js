@@ -7,52 +7,42 @@ import Region from '@enact/sandstone/Region';
 import MediaOverlay from '@enact/sandstone/MediaOverlay';
 import axios from 'axios';
 import css from './Main.module.less';
-
-const API_URL = 'http://3.36.212.250:3000'; // Your API URL
+import { login as lgin, getMyInfo } from '../hooks/server';
+import { data } from 'ilib';
+import {useUserStore} from "../zustand"
+const API_URL = 'http://3.36.212.250:3000'; // Your API URL 
 
 const MyPage = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Peter', sex: 'Male', age: 30, email: 'peter@example.com', password: 'password123' },
-    { id: 2, name: 'Anna', sex: 'Female', age: 25, email: 'anna@example.com', password: 'password456' }
-  ]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [finishedVideos, setFinishedVideos] = useState([]);
 
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [popupType, setPopupType] = useState('login'); // 'login' or 'create'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const {user, setUser} = useUserStore();
 
   const login = async (email, password) => {
     try {
-      const userData = await axios.post(`${API_URL}/login`, {
-        email: email,
-        password: password
-        
+      const userData = await lgin(
+        email,
+        password
+      ).then((token)=>
+        getMyInfo(token).then((data)=>{
+          setUser({user: data});
+          setPopupOpen(false); // Close popup after successful login
+        }).catch((e)=>{
+          console.log("Err | Mypage.js | login | getMyInfo : ")+e;
+        })
+      ).catch((e)=>{
+        console.log('Invalid email or password : '+e);
       });
-
-      if (userData) {
-        setCurrentUser(userData.data);
-        setIsLoggedIn(true);
-        fetchBookmarks(userData.data.id);
-        fetchFinishedVideos(userData.data.id);
-        setPopupOpen(false); // Close popup after successful login
-      } else {
-        console.log('Invalid email or password');
-      }
-    } catch (error) {
-      console.error('Error logging in:', error);
+    }catch{
+      console.log("Err | Mypage.js | login")
     }
   };
 
   const logout = () => {
-    setCurrentUser(null);
-    setIsLoggedIn(false);
-    setBookmarks([]);
-    setFinishedVideos([]);
+    setUser(null);
   };
 
   const fetchBookmarks = (userId) => {
@@ -61,7 +51,7 @@ const MyPage = () => {
       { videoId: '101', title: 'Introduction to React', src: 'https://via.placeholder.com/300?text=React+101' },
       { videoId: '102', title: 'Advanced JavaScript', src: 'https://via.placeholder.com/300?text=JS+Advanced' }
     ];
-    setBookmarks(mockBookmarks);
+    // setBookmarks(mockBookmarks);
   };
 
   const fetchFinishedVideos = (userId) => {
@@ -70,7 +60,7 @@ const MyPage = () => {
       { videoId: '201', title: 'React Hooks Deep Dive', src: 'https://via.placeholder.com/300?text=React+Hooks' },
       { videoId: '202', title: 'State Management with Redux', src: 'https://via.placeholder.com/300?text=Redux' }
     ];
-    setFinishedVideos(mockFinishedVideos);
+    // setFinishedVideos(mockFinishedVideos);
   };
 
   const register = async (email, username, password) => {
@@ -90,20 +80,15 @@ const MyPage = () => {
     try {
       const newUser = await register(email, name, password);
       if (newUser) {
-        setUsers([...users, { id: newUser.id, name, email, password }]);
-        setEmail('');
-        setPassword('');
-        setName('');
         setPopupOpen(false); // Close popup after creating a new user
       }
     } catch (error) {
       console.error('Error creating account:', error);
     }
   };
-
   return (
     <div className={css.myPage}>
-      {isLoggedIn && currentUser ? (
+      {user ? (
         <div>
           <div className={css.header}>
             <Region title="My Page" />
@@ -113,15 +98,16 @@ const MyPage = () => {
             <Tab title="My Info">
               <div>
                 <h2>My Info</h2>
-                <p>Name: {currentUser.name}</p>
-                <p>Email: {currentUser.email}</p>
+                <p>Name: {user.username}</p>
+                <p>Email: {user.email}</p>
               </div>
             </Tab>
             <Tab title="Bookmarked Videos">
               <div>
                 <h2>Bookmarked Videos</h2>
                 <div className={css.videoGrid}>
-                  {bookmarks.map((bookmark, index) => (
+                  
+                  { user?.bookMark?.map((bookmark, index) => (
                     <MediaOverlay
                       key={index}
                       src={bookmark.src}
@@ -136,14 +122,15 @@ const MyPage = () => {
               <div>
                 <h2>Finished Videos</h2>
                 <div className={css.videoGrid}>
-                  {finishedVideos.map((video, index) => (
+                  <div>finish video mock div</div>
+                  {/* {finishedVideos.map((video, index) => (
                     <MediaOverlay
                       key={index}
                       src={video.src}
                       caption={video.title}
                       className={css.mediaOverlay}
                     />
-                  ))}
+                  ))} */}
                 </div>
               </div>
             </Tab>
