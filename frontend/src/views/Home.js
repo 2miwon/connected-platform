@@ -62,23 +62,26 @@ const Home = () => {
 //     { text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4' }
 //   ];
 
-  	const filterOptions = ['Order A~Z', 'Order Z~A', 'Most recent', 'Least Recent'];
+const filterOptions = ['Order A~Z', 'Order Z~A', 'Order by Position', 'Reverse Order by Position'];
 
-
-	  const filteredVideos = Array.isArray(videos) ? videos.filter(video => video.Title.toLowerCase().includes(state.name.toLowerCase())) : [];
-
-    // .sort((a, b) => {
-    //   if (state.filterType === 'Order from A~Z') {
-    //     return a.text.localeCompare(b.text);
-    //   } else if (state.filterType === 'Order from Z~A') {
-    //     return b.text.localeCompare(a.text);
-    //   } else if (state.filterType === 'Order by Position') {
-    //     return videos.indexOf(a) - videos.indexOf(b);
-    //   } else if (state.filterType === 'Reverse Order by Position') {
-    //     return videos.indexOf(b) - videos.indexOf(a);
-    //   }
-    //   return 0;
-    // });
+const filteredVideos = Array.isArray(videos)
+  ? videos
+	  .filter(video => video.Title.toLowerCase().includes(state.name.toLowerCase()))
+	  .sort((a, b) => {
+		switch (state.filterType) {
+		  case 'Order A~Z':
+			return a.Title.localeCompare(b.Title);
+		  case 'Order Z~A':
+			return b.Title.localeCompare(a.Title);
+		  case 'Least Recent':
+			return videos.indexOf(a) - videos.indexOf(b);
+		  case 'Most Recent':
+			return videos.indexOf(b) - videos.indexOf(a);
+		  default:
+			return 0;
+		}
+	  })
+  : [];
 
 	return (
 		<>
@@ -113,7 +116,7 @@ const Home = () => {
 			<div className={css.mediaContainer}>
 
 			  {filteredVideos.map((video, index) => (
-          <MediaOverlay key={index} text={video.Title} loop>
+          <MediaOverlay key={index} text={video.Title} loop muted>
             <source src={video.URL} />
           </MediaOverlay>
         ))}
