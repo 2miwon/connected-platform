@@ -28,11 +28,11 @@ const MyVideos = () => {
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoSrc, setNewVideoSrc] = useState('');
   const [newVideoContent, setNewVideoContent] = useState(''); // New state for content
-  const [newVideoThumbnail, setNewVideoThumbnail] = useState(''); // New state for thumbnail
+
   const [editVideoTitle, setEditVideoTitle] = useState('');
   const [editVideoSrc, setEditVideoSrc] = useState('');
   const [editVideoContent, setEditVideoContent] = useState(''); // New state for content
-  const [editVideoThumbnail, setEditVideoThumbnail] = useState(''); // New state for thumbnail
+
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
@@ -45,11 +45,11 @@ const MyVideos = () => {
   const {user, setUser} = useUserStore();
 
   const [videos, setVideos] = useState([
-    { id: 1, text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 2, text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4', content: 'VR Headset content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 3, text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4', content: 'Blood Sample content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 4, text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4', content: 'Tattoo content', thumbnail: 'https://example.com/thumbnail.jpg' },
-    { id: 5, text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4', content: 'Clinic content', thumbnail: 'https://example.com/thumbnail.jpg' }
+    { id: 1, text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content' },
+    { id: 2, text: 'VR Headset', src: 'https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4', content: 'VR Headset content' },
+    { id: 3, text: 'Blood Sample', src: 'https://videos.pexels.com/video-files/4074364/4074364-hd_1280_720_25fps.mp4', content: 'Blood Sample content' },
+    { id: 4, text: 'Tattoo', src: 'https://videos.pexels.com/video-files/4124030/4124030-uhd_4096_2160_25fps.mp4', content: 'Tattoo content'},
+    { id: 5, text: 'Clinic', src: 'https://videos.pexels.com/video-files/4488804/4488804-uhd_3840_2160_25fps.mp4', content: 'Clinic content'}
   ]);
 
   const [playingVideo, setPlayingVideo] = useState(null); // State to track the playing video
@@ -59,8 +59,7 @@ const MyVideos = () => {
       title: newVideoTitle,
       content: newVideoContent,
       url: newVideoSrc,
-      author_id: 'AuthorID', // Replace with actual author ID if available
-      thumbnail_url: newVideoThumbnail
+      author_id: user.id, // Replace with actual author ID if available
     };
 
     try {
@@ -74,11 +73,10 @@ const MyVideos = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        setVideos([...videos, { id: responseData.id, text: newVideoTitle, src: newVideoSrc, content: newVideoContent, thumbnail: newVideoThumbnail }]);
+        setVideos([...videos, { id: responseData.id, text: newVideoTitle, src: newVideoSrc, content: newVideoContent }]);
         setNewVideoTitle('');
         setNewVideoSrc('');
         setNewVideoContent('');
-        setNewVideoThumbnail('');
         handlePopupClose();
       } else {
         console.error('Error adding video:', response.statusText);
@@ -105,14 +103,13 @@ const MyVideos = () => {
   const handleEditVideo = () => {
     if (selectedVideo !== null) {
       const updatedVideos = videos.map((video, index) =>
-        index === selectedVideo ? { ...video, text: editVideoTitle, src: editVideoSrc, content: editVideoContent, thumbnail: editVideoThumbnail } : video
+        index === selectedVideo ? { ...video, text: editVideoTitle, src: editVideoSrc, content: editVideoContent } : video
       );
       setVideos(updatedVideos);
       setSelectedVideo(null);
       setEditVideoTitle('');
       setEditVideoSrc('');
       setEditVideoContent('');
-      setEditVideoThumbnail('');
       setIsEditing(false);
       handleDeleteEditPopupClose();
     }
@@ -124,7 +121,6 @@ const MyVideos = () => {
       setEditVideoTitle(video.text);
       setEditVideoSrc(video.src);
       setEditVideoContent(video.content);
-      setEditVideoThumbnail(video.thumbnail);
       setIsEditing(true);
     }
   };
@@ -182,7 +178,7 @@ const MyVideos = () => {
           </Button>
 
           <Alert type="overlay" open={isPopupOpen} onClose={handlePopupClose}>
-            <span>{$L('Enter name, link, content, and thumbnail URL.')}</span>
+            <span>{$L('Enter name, link, content')}</span>
             <div>
               <InputField
                 placeholder={$L('Video Title')}
@@ -198,11 +194,6 @@ const MyVideos = () => {
                 placeholder={$L('Video Content')}
                 value={newVideoContent}
                 onChange={({ value }) => setNewVideoContent(value)}
-              />
-              <InputField
-                placeholder={$L('Thumbnail URL')}
-                value={newVideoThumbnail}
-                onChange={({ value }) => setNewVideoThumbnail(value)}
               />
             </div>
             <div>
@@ -244,7 +235,7 @@ const MyVideos = () => {
               </>
             ) : (
               <>
-                <span>{$L('Edit name, link, content, and thumbnail URL.')}</span>
+                <span>{$L('Edit name, link, content')}</span>
                 <div>
                   <InputField
                     placeholder={$L('Video Title')}
@@ -260,11 +251,6 @@ const MyVideos = () => {
                     placeholder={$L('Video Content')}
                     value={editVideoContent}
                     onChange={({ value }) => setEditVideoContent(value)}
-                  />
-                  <InputField
-                    placeholder={$L('Thumbnail URL')}
-                    value={editVideoThumbnail}
-                    onChange={({ value }) => setEditVideoThumbnail(value)}
                   />
                 </div>
                 <div>
