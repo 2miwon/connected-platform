@@ -28,11 +28,11 @@ const MyVideos = () => {
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoSrc, setNewVideoSrc] = useState('');
   const [newVideoContent, setNewVideoContent] = useState(''); // New state for content
-  const [newVideoThumbnail, setNewVideoThumbnail] = useState(''); // New state for thumbnail
+
   const [editVideoTitle, setEditVideoTitle] = useState('');
   const [editVideoSrc, setEditVideoSrc] = useState('');
   const [editVideoContent, setEditVideoContent] = useState(''); // New state for content
-  const [editVideoThumbnail, setEditVideoThumbnail] = useState(''); // New state for thumbnail
+
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
@@ -81,7 +81,6 @@ const MyVideos = () => {
         setNewVideoTitle('');
         setNewVideoSrc('');
         setNewVideoContent('');
-        setNewVideoThumbnail('');
         handlePopupClose();
       } else {
         console.error('Error adding video:', response.statusText);
@@ -115,7 +114,6 @@ const MyVideos = () => {
       setEditVideoTitle('');
       setEditVideoSrc('');
       setEditVideoContent('');
-      setEditVideoThumbnail('');
       setIsEditing(false);
       handleDeleteEditPopupClose();
     }
@@ -127,7 +125,6 @@ const MyVideos = () => {
       setEditVideoTitle(video.text);
       setEditVideoSrc(video.src);
       setEditVideoContent(video.content);
-      setEditVideoThumbnail(video.thumbnail);
       setIsEditing(true);
     }
   };
@@ -185,7 +182,7 @@ const MyVideos = () => {
           </Button>
 
           <Alert type="overlay" open={isPopupOpen} onClose={handlePopupClose}>
-            <span>{$L('Enter name, link, content, and thumbnail URL.')}</span>
+            <span>{$L('Enter name, link, content')}</span>
             <div>
               <InputField
                 placeholder={$L('Video Title')}
@@ -201,11 +198,6 @@ const MyVideos = () => {
                 placeholder={$L('Video Content')}
                 value={newVideoContent}
                 onChange={({ value }) => setNewVideoContent(value)}
-              />
-              <InputField
-                placeholder={$L('Thumbnail URL')}
-                value={newVideoThumbnail}
-                onChange={({ value }) => setNewVideoThumbnail(value)}
               />
             </div>
             <div>
@@ -247,7 +239,7 @@ const MyVideos = () => {
               </>
             ) : (
               <>
-                <span>{$L('Edit name, link, content, and thumbnail URL.')}</span>
+                <span>{$L('Edit name, link, content')}</span>
                 <div>
                   <InputField
                     placeholder={$L('Video Title')}
@@ -263,11 +255,6 @@ const MyVideos = () => {
                     placeholder={$L('Video Content')}
                     value={editVideoContent}
                     onChange={({ value }) => setEditVideoContent(value)}
-                  />
-                  <InputField
-                    placeholder={$L('Thumbnail URL')}
-                    value={editVideoThumbnail}
-                    onChange={({ value }) => setEditVideoThumbnail(value)}
                   />
                 </div>
                 <div>
