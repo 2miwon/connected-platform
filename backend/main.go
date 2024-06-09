@@ -467,7 +467,7 @@ func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 // @Accept  json
 // @Produce  json
 // @Param   video_id     body    string     true        "Video ID"
-// @Param   add_comment  body    string     true        "Add comment"
+// @Param   content  body    string     true        "Add comment"
 // @Success 200 {object} string
 // @Failure 400 {object} string "Video not found"
 // @Failure 500 {object} string "Internal server error"
@@ -493,7 +493,7 @@ func addComment(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	}
 
 	if body["comment"] != nil {
-		add["$push"] = bson.M{"comments": body["add_comment"].(string)}
+		add["$push"] = bson.M{"comments": body["content"].(string)}
 	}
 
 	_, err = collection.UpdateOne(ctx, filter, add)
