@@ -453,6 +453,17 @@ func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	return c.SendStatus(200)
 }
 
+// @Summary Add comment
+// @Description Add comment to video
+// @Tags videos
+// @Accept  json
+// @Produce  json
+// @Param   video_id     body    string     true        "Video ID"
+// @Param   add_comment  body    string     true        "Add comment"
+// @Success 200 {object} string
+// @Failure 400 {object} string "Video not found"
+// @Failure 500 {object} string "Internal server error"
+// @Router /video/comment [post]
 func addComment(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 	body := jsonParser(c)
