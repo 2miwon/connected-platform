@@ -130,6 +130,139 @@ func jsonParser(c *fiber.Ctx) map[string]interface{} {
 	return body
 }
 
+// @Summary Register a new user
+// @Description Register a new user with email, username and password
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param   email     body    string     true        "Email"
+// @Param   password  body    string     true        "Password"
+// @Success 200 {object} User
+// @Failure 400 {object} string "User already exists"
+// @Failure 500 {object} string "Internal server error"
+// @Router /users/register [post]
+func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("users")
+	body := jsonParser(c)
+	filter := bson.M{"email": body["email"].(string)}
+	
+	err := checkDocumentNotExists(collection, ctx, filter, "User already exists")
+	if err != nil {
+		return c.SendStatus(400)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body["password"].(string)), bcrypt.DefaultCost)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+	token, err := bcrypt.GenerateFromPassword([]byte(body["email"].(string)), bcrypt.DefaultCost)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+	user := User{
+		Email: body["email"].(string),
+		Username: body["email"].(string),
+		Password: string(hashedPassword),
+		Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
+		Token: string(token),
+	}
+	rst, err := createUser(collection, ctx, user)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+	return c.JSON(rst)
+}
+
+// @Summary Get user info
+// @Description Get user info with token
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param   token     body    string     true        "Token
+// @Success 200 {object} User
+// @Failure 403 {object} string "User not found"
+// @Router /users/my_info [post]
+func getMyInfo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("users")
+
+		body := jsonParser(c)
+		var rst bson.M
+		err := collection.FindOne(ctx, bson.M{"token": body["token"].(string)}).Decode(&rst)
+		if err != nil {
+			return c.SendStatus(403)
+		}
+
+		return c.JSON(rst)
+}
+
+// @Summary Create a new video
+// @Description Create a new video with title, content, url, author_id
+// @Tags videos
+// @Accept  json
+// @Produce  json
+// @Param   title     body    string     true        "Title"
+// @Param   content   body    string     true        "Content"
+// @Param   url       body    string     true        "URL"
+// @Param   author_id body    string     true        "Author ID"
+// @Success 200 {object} Video
+// @Failure 500 {object} string "Internal server error"
+// @Router /videos/create [post]
+func createVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("videos")
+	body := jsonParser(c)
+
+	video := Video{
+		Title: body["title"].(string),
+		Content: body["content"].(string),
+		URL: body["url"].(string),
+		AuthorID: body["author_id"].(string),
+		Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
+	}
+
+	// if body["thumbnail_url"] != nil {
+	// 	video.(bson.M)["thumbnail_url"] = body["thumbnail_url"]
+	// }
+
+	rst, err := collection.InsertOne(ctx, video)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+
+	return c.JSON(rst)
+}
+
+// @Summary Get all videos
+// @Description Get all videos
+// @Tags videos
+// @Produce  json
+// @Success 200 {object} Video
+// @Failure 500 {object} string "Internal server error"
+// @Router /videos/all [get]
+func getAllVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("videos")
+	cursor, err := collection.Find(ctx, bson.M{})
+	checkErr(err)
+
+	var videos []Video
+	if err = cursor.All(ctx, &videos); err != nil {
+		return c.SendStatus(500)
+	}
+
+	return c.JSON(videos)
+}
+
+func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
+	collection := db.Collection("videos")
+	body := jsonParser(c)
+
+	rst, err := collection.Find(ctx, bson.M{"author_id": body["id"]})
+	if err != nil {
+		return c.SendStatus(500)
+	}
+
+	return c.JSON(rst)
+}
+
 // @title SuperNova API
 // @version 1.0
 // @description This is a swagger docs for Fiber
@@ -182,90 +315,23 @@ func main() {
 	})
 	
 	app.Post("/user/create", func(c *fiber.Ctx) error {
-		collection := db.Collection("users")
-		body := jsonParser(c)
-
-		filter := bson.M{"email": body["email"].(string)}
-		
-		err = checkDocumentNotExists(collection, ctx, filter, "User already exists")
-		if err != nil {
-			return c.SendStatus(400)
-		}
-	
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body["password"].(string)), bcrypt.DefaultCost)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		token, err := bcrypt.GenerateFromPassword([]byte(body["email"].(string)), bcrypt.DefaultCost)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		user := User{
-			Email: body["email"].(string),
-			Username: body["email"].(string),
-			Password: string(hashedPassword),
-			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
-			Token: string(token),
-		}
-
-		rst, err := createUser(collection, ctx, user)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
+		return registerUser(c, ctx, db)
 	})
 
 	app.Post("/user/my_info", func(c *fiber.Ctx) error {
-		collection := db.Collection("users")
-
-		body := jsonParser(c)
-		var rst bson.M
-		err := collection.FindOne(ctx, bson.M{"token": body["token"].(string)}).Decode(&rst)
-		if err != nil {
-			return c.SendStatus(403)
-		}
-
-		return c.JSON(rst)
+		return getMyInfo(c, ctx, db)
 	})
 	
 	app.Post("/video/create", func(c *fiber.Ctx) error {
-		collection := db.Collection("videos")
-		body := jsonParser(c)
-
-		video := Video{
-			Title: body["title"].(string),
-			Content: body["content"].(string),
-			URL: body["url"].(string),
-			AuthorID: body["author_id"].(string),
-			Created: primitive.Timestamp{T: uint32(time.Now().Unix())},
-		}
-
-		// if body["thumbnail_url"] != nil {
-		// 	video.(bson.M)["thumbnail_url"] = body["thumbnail_url"]
-		// }
-
-		rst, err := collection.InsertOne(ctx, video)
-		if err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(rst)
+		return createVideo(c, ctx, db)
 	})
 
 	app.Get("/video/all", func(c *fiber.Ctx) error {
-		collection := db.Collection("videos")
-		cursor, err := collection.Find(ctx, bson.M{})
-		checkErr(err)
+		return getAllVideos(c, ctx, db)
+	})
 
-		var videos []Video
-		if err = cursor.All(ctx, &videos); err != nil {
-			return c.SendStatus(500)
-		}
-
-		return c.JSON(videos)
+	app.Get("/video/user/:id", func(c *fiber.Ctx) error {
+		return getMyVideos(c, ctx, db)
 	})
 
 	app.Post("/video/update", func(c *fiber.Ctx) error {
