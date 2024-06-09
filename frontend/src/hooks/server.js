@@ -26,7 +26,7 @@ export const fetchAllVideos = async () => {
 
 export const getMyInfo = async (token) => {
   try {
-    const response = await axios.post(`${API_URL}/my_info/`, {
+    const response = await axios.post(`${API_URL}/user/my_info/`, {
       token: token
     });
     return response.data;
@@ -87,6 +87,17 @@ export const deleteVideo = async (video_id) => {
   try {
     const response = await axios.post(`${API_URL}/video/delete/`, {
       video_id: video_id
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const addBookmark = async (token) => {
+  try {  
+    const response = await axios.post(`${API_URL}/user/update`, {
+      token: token,
     });
     return response.data;
   } catch (error) {

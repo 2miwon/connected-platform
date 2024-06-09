@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import Alert from '@enact/sandstone/Alert';
 import Button from '@enact/sandstone/Button';
 import css from './Main.module.less';
@@ -14,6 +12,13 @@ import RadioItem from '@enact/sandstone/RadioItem';
 import MediaOverlay from '@enact/sandstone/MediaOverlay';
 import VideoPlayer from '@enact/sandstone/VideoPlayer';
 import { MediaControls } from '@enact/sandstone/MediaPlayer';
+
+import {useUserStore} from "../zustand"
+
+
+const API_URL = 'http://3.36.212.250:3000'; // Your API URL 
+
+
 
 const MyVideos = () => {
   const data = useConfigs();
@@ -32,6 +37,12 @@ const MyVideos = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(0);
+  const [comments, setComments] = useState([]); // State for comments
+  const [newComment, setNewComment] = useState(''); // State for new comment input
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false); // State to manage comments section visibility
+
+
+  const {user, setUser} = useUserStore();
 
   const [videos, setVideos] = useState([
     { id: 1, text: 'Biotech', src: 'https://videos.pexels.com/video-files/3195394/3195394-uhd_3840_2160_25fps.mp4', content: 'Biotech content', thumbnail: 'https://example.com/thumbnail.jpg' },
@@ -124,6 +135,7 @@ const MyVideos = () => {
 
   const handleStopVideo = () => {
     setPlayingVideo(null);
+    setIsCommentsOpen(false); // Close comments when video stops
   };
 
   const handleBookmark = async () => {
@@ -149,17 +161,12 @@ const MyVideos = () => {
     }
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const videosData = await fetchAllVideos();
-        setVideos(videosData);
-      } catch (error) {
-        console.error(error);
-      }
+  const handleAddComment = () => {
+    if (newComment.trim() !== '') {
+      setComments([...comments, newComment]);
+      setNewComment('');
     }
-    fetchData();
-  }, []);
+  };
 
   return (
     <>
@@ -270,6 +277,7 @@ const MyVideos = () => {
                 </div>
               </>
             )}
+            
           </Alert>
         </div>
       </div>
@@ -310,10 +318,36 @@ const MyVideos = () => {
               playIcon="play"
             >
               <Button icon="bookmark" size="small" selected={bookmarked} onClick={handleBookmark} />
+              <Button icon="info" size="small" selected={isCommentsOpen} onClick={() => setIsCommentsOpen(!isCommentsOpen)} />
               <span>{bookmarkCount} Bookmarks</span>
             </MediaControls>
-            
           </VideoPlayer>
+          {isCommentsOpen && (
+            <div className={css.commentSection}>
+              <h2>Comments</h2>
+              <div className={css.commentsContainer}>
+                {comments.map((comment, index) => (
+                  <div key={index} className={css.comment}>
+                    <p>{comment}</p>
+                  </div>
+                ))}
+              </div>
+              <div className={css.commentBox}>
+                <InputField
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.value)}
+                  dismissOnEnter
+                  onKeyUp={(e) => {
+                    if (e.key === 'Enter') handleAddComment();
+                  }}
+                />
+              </div>
+              <div className={css.addButton}>
+                <Button onClick={handleAddComment}>Add Comment</Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
