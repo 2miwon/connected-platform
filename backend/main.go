@@ -413,19 +413,28 @@ func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	}
 
 	if body["video_history"] != nil {
-		videoHistory := VideoHistory{
-			VideoID: body["video_history"].(string),
-			Date:    time.Now(),
-		}
-		
-		if 
-		remove := bson.M{"$pull": bson.M{"history": bson.M{"VideoID": videoHistory.VideoID}}}
-    	_, err := collection.UpdateOne(context.TODO(), filter, remove)
+
+	
+		remove := bson.M{"$pull": bson.M{"history": bson.M{"VideoID": body["video_history"]}}}
+    	res, err := collection.UpdateOne(context.TODO(), filter, remove)
     	if err != nil {
     	    log.Fatal(err)
     	}
 
-		add["$push"] = bson.M{"history": videoHistory}
+		if res.MatchedCount == 0 {
+			log.Println("No document matched the filter")
+		}
+
+		videoHistory := VideoHistory{
+			VideoID: body["video_history"].(string),
+			Date:    time.Now(),
+		}
+
+		add := bson.M{"$push": bson.M{"history": videoHistory}}
+   		_, err = collection.UpdateOne(context.TODO(), filter, add)
+   		if err != nil {
+   		    log.Fatal(err)
+   		}
 	}
 
 	if body["add_bookmark"] != nil {
