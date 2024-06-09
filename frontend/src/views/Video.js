@@ -27,15 +27,6 @@ const Video = (prop) => {
   const videoRef = useRef(null);
   //const currentVideoId = videoIdList[selectedOption];
 
-  useEffect(() => {
-    // Fetch initial bookmark status and count from the server
-    fetch(`/api/videos/${prop.videoId}/bookmarks`)
-      .then((response) => response.json())
-      .then((data) => {
-        setBookmarked(data.bookmarked);
-        setBookmarkCount(data.bookmarkCount);
-      });
-  }, [prop.videoId]);
 
   const handleBookmark = () => {
     const newBookmarkedStatus = !bookmarked;

@@ -2,11 +2,17 @@
 	width: 1000px;
 }
 
+.smallerbuttonCell {
+	width: 500px;
+	left: 110%;
+}
+
 .mediaContainer {
 	display: flex;
 	flex-wrap: wrap; /* Allows wrapping to the next line if necessary */
 	justify-content: flex-start; /* Distributes space between items */
-	padding: 10px;
+	padding: 30px;
+	margin-left: 7%;
 }
 
 .mainHome {
@@ -46,6 +52,18 @@
 	
 }
 
+.fullscreenVideo {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: black;
+	z-index: 1000; /* Ensure it's on top of other elements */
+  }
 
 // COMMENT BOX SECTION //
 
@@ -97,4 +115,8 @@
   
   .logoutButton {
 	margin-left: auto;
+  }
+
+  .mypageButtons {
+	margin-left: 25%;
   }

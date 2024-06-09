@@ -21,6 +21,7 @@ export const fetchAllVideos = async () => {
     return response.data;
   } catch (error) {
     console.error(error);
+ }
 }
 
 export const getMyInfo = async (token) => {
