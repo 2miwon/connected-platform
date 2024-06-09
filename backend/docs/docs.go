@@ -84,7 +84,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/my_info": {
+        "/user/my_info": {
             "post": {
                 "description": "Get user info with token",
                 "consumes": [
@@ -124,7 +124,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/register": {
+        "/user/register": {
             "post": {
                 "description": "Register a new user with email, username and password",
                 "consumes": [
@@ -179,7 +179,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/update": {
+        "/user/update": {
             "post": {
                 "description": "Update user with token",
                 "consumes": [

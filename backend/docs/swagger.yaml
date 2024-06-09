@@ -105,7 +105,7 @@ paths:
       summary: Login
       tags:
       - users
-  /users/my_info:
+  /user/my_info:
     post:
       consumes:
       - application/json
@@ -131,7 +131,7 @@ paths:
       summary: Get user info
       tags:
       - users
-  /users/register:
+  /user/register:
     post:
       consumes:
       - application/json
@@ -167,7 +167,7 @@ paths:
       summary: Register a new user
       tags:
       - users
-  /users/update:
+  /user/update:
     post:
       consumes:
       - application/json
