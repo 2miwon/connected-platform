@@ -305,11 +305,11 @@ func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
 
 	id := c.Params("id")
-
+	log.Println(id)
 	if id == "" {
 		return c.SendStatus(400)
 	}
-
+	
 	rst, err := collection.Find(ctx, bson.M{"author_id": id})
 	if err != nil {
 		return c.SendStatus(500)
