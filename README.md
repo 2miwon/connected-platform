@@ -85,7 +85,7 @@ We decided to develop on (1) Media Web Application for this '24 Spring Project.
 
 ---
 
-![Untitled](images/Untitled.png)
+![Untitled](https://file.notion.so/f/f/9efa1ade-d525-423c-adbf-407a21b2f03f/df236d39-29bc-4512-98f5-81322fd870ae/Untitled.png?id=c2556b65-7b3c-4344-8179-501fb42feded&table=block&spaceId=9efa1ade-d525-423c-adbf-407a21b2f03f&expirationTimestamp=1718049600000&signature=yam8UpTgq-qhJqe6uk4JP7F11UsTkw9ihfZKuaSEHmo&downloadName=Untitled.png)
 
 ### Frontend - Enact.js WebOS application
 
