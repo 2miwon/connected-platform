@@ -303,13 +303,12 @@ func deleteVideo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 // @Router /videos/user/{id} [get]
 func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("videos")
-	body := jsonParser(c)
 
 	if c.Params("id") == "" {
 		return c.SendStatus(400)
 	}
 
-	rst, err := collection.Find(ctx, bson.M{"author_id": body["id"]})
+	rst, err := collection.Find(ctx, bson.M{"author_id": c.Params("id")})
 	if err != nil {
 		return c.SendStatus(500)
 	}
