@@ -126,7 +126,7 @@ func jsonParser(c *fiber.Ctx) map[string]interface{} {
 // @Success 200 {object} User
 // @Failure 400 {object} string "User already exists"
 // @Failure 500 {object} string "Internal server error"
-// @Router /users/register [post]
+// @Router /user/register [post]
 func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 	body := jsonParser(c)
@@ -168,7 +168,7 @@ func registerUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 // @Param   token     body    string     true        "User token"
 // @Success 200 {object} User
 // @Failure 403 {object} string "User not found"
-// @Router /users/my_info [post]
+// @Router /user/my_info [post]
 func getMyInfo(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 
@@ -363,7 +363,7 @@ func login(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 // @Success 200 {object} string
 // @Failure 400 {object} string "User not found"
 // @Failure 500 {object} string "Internal server error"
-// @Router /users/update [post]
+// @Router /user/update [post]
 func updateUser(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	collection := db.Collection("users")
 	body := jsonParser(c)
