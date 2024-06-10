@@ -311,7 +311,7 @@ func getMyVideos(c *fiber.Ctx, ctx context.Context, db *mongo.Database) error {
 	}
 	
 
-	cursor, err := collection.Find(ctx, bson.M{})
+	cursor, err := collection.Find(ctx, bson.M{"author_id": id})
 	checkErr(err)
 
 	var videos []Video
